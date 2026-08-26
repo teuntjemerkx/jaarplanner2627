@@ -7,16 +7,14 @@
  *  Stap 1. Vraag het logo op bij Marketing, Instroom en Communicatie, of pak
  *          het uit Docufiller. Een SVG met doorzichtige achtergrond is het
  *          beste, een PNG met doorzichtige achtergrond kan ook.
- *  Stap 2. Zet het bestand om naar een data-URI, bijvoorbeeld zo:
+ *  Stap 2. Draai vanuit de map van het project:
  *
- *            base64 -w0 logo.svg
+ *            node scripts/logo.mjs pad/naar/logo.svg
+ *            npm run build
  *
- *          en plak de uitkomst achter het juiste voorvoegsel:
- *
- *            SVG : data:image/svg+xml;base64,PLAK_HIER
- *            PNG : data:image/png;base64,PLAK_HIER
- *
- *  Stap 3. Vervang null hieronder door die tekst tussen quotes.
+ *          Het script zet het bestand om naar een data-URI, schrijft die
+ *          hieronder weg en leest de verhouding uit het bestand zelf.
+ *          Weghalen kan met: node scripts/logo.mjs --wis
  *
  *  Waarom een data-URI en geen los bestand? Omdat de app dan een enkel
  *  bestand blijft dat offline werkt en geen enkel extern verzoek doet.
@@ -27,5 +25,9 @@
 
 export const LOGO_DATA_URI: string | null = null
 
-/** Verhouding breedte : hoogte van het logobestand. Nodig om te schalen. */
-export const LOGO_VERHOUDING = 3.296
+/**
+ * Verhouding breedte : hoogte van het logobestand.
+ * 3,241 komt uit de metadata van "RIJ logo oranje-paars rgb" (183,72 x 56,69 px).
+ * Het script scripts/logo.mjs leest deze waarde zelf uit het bestand dat je erin zet.
+ */
+export const LOGO_VERHOUDING = 3.241
