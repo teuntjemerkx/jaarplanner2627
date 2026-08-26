@@ -48,7 +48,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'NL',
     categorie: 'taal',
     kleur: '#FF7A1A',
-    toelichting: 'Lezen, luisteren, schrijven, spreken en gesprekken voeren op 2F-niveau.',
+    toelichting: 'Lezen, luisteren, schrijven en praten. Je werkt naar niveau 2F.',
   },
   rekenen: {
     id: 'rekenen',
@@ -56,7 +56,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'REK',
     categorie: 'rekenen',
     kleur: '#209FEA',
-    toelichting: 'Rekenvaardigheid richting het centraal examen rekenen.',
+    toelichting: 'Rekenen oefenen. Je werkt naar het centraal examen rekenen.',
   },
   engels: {
     id: 'engels',
@@ -64,7 +64,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'ENG',
     categorie: 'taal',
     kleur: '#5DD9C1',
-    toelichting: 'Lezen en luisteren op A2, spreken, gesprekken en schrijven op A1.',
+    toelichting: 'Lezen en luisteren op niveau A2. Praten en schrijven op niveau A1.',
   },
   businessservices: {
     id: 'businessservices',
@@ -72,7 +72,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'BS',
     categorie: 'beroep',
     kleur: '#C79BFF',
-    toelichting: 'Het beroepsvak: hier leer je het werk van de medewerker ABS. Grootste vak van je jaar.',
+    toelichting: 'Hier leer je het echte werk van de medewerker ABS. Dit is je grootste vak.',
   },
   msoffice: {
     id: 'msoffice',
@@ -80,7 +80,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'MSO',
     categorie: 'beroep',
     kleur: '#7BE0FF',
-    toelichting: 'Word, Excel, Outlook en PowerPoint op het niveau dat je op kantoor nodig hebt.',
+    toelichting: 'Werken met Word, Excel, Outlook en PowerPoint. Dat heb je op kantoor nodig.',
   },
   burgerschap: {
     id: 'burgerschap',
@@ -88,7 +88,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'BUR',
     categorie: 'burgerschap',
     kleur: '#FFC44D',
-    toelichting: 'Je rol in de samenleving: politiek, werk, gezondheid en omgaan met verschillen.',
+    toelichting: 'Over jouw plek in de maatschappij. Denk aan werk, gezondheid en meedoen.',
   },
   lbc: {
     id: 'lbc',
@@ -96,7 +96,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'LBC',
     categorie: 'loopbaan',
     kleur: '#FF9BD2',
-    toelichting: 'Loopbaanbegeleiding: gesprekken over hoe het gaat, wat je wilt en waar je heen groeit.',
+    toelichting: 'Gesprekken over hoe het met je gaat en wat je later wilt doen.',
   },
   sport: {
     id: 'sport',
@@ -104,7 +104,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'SPO',
     categorie: 'burgerschap',
     kleur: '#A8E063',
-    toelichting: 'Bewegen en gezondheid. Alleen in periode 1 en 2.',
+    toelichting: 'Sporten en bewegen. Alleen in periode 1 en 2.',
   },
   keuzedelen: {
     id: 'keuzedelen',
@@ -112,7 +112,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'KD',
     categorie: 'keuze',
     kleur: '#D7C3F2',
-    toelichting: 'Je eigen verdieping. Je kiest zelf welk keuzedeel je doet. Start in periode 3.',
+    toelichting: 'Extra vak dat je zelf uitkiest. Het begint in periode 3.',
   },
   projectenabs: {
     id: 'projectenabs',
@@ -120,7 +120,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'PRO',
     categorie: 'beroep',
     kleur: '#9B8CFF',
-    toelichting: 'Praktijkopdrachten waarin je vakken samenkomen. Alleen in periode 1 tot en met 3.',
+    toelichting: 'Opdrachten waarin je meerdere vakken tegelijk gebruikt. Alleen in periode 1, 2 en 3.',
   },
   sollicitatietraining: {
     id: 'sollicitatietraining',
@@ -128,7 +128,7 @@ export const VAKKEN: Record<VakId, Vak> = {
     kort: 'SOL',
     categorie: 'loopbaan',
     kleur: '#FFB199',
-    toelichting: 'Brief, cv en het gesprek zelf. Bereidt je voor op het vinden van je stageplek.',
+    toelichting: 'Je leert een cv en brief maken. Zo vind je straks een stageplek.',
   },
 }
 
@@ -201,7 +201,7 @@ const BASIS_P4_P8: PeriodeVak[] = [
   { vakId: 'businessservices', urenPerWeek: 6 },
 ]
 
-const ZONDER_STAGE = 'Studenten zonder stageplek volgen 4 uur begeleiding per week (2 x 2 uur).'
+const ZONDER_STAGE = 'Heb je nog geen stageplek? Dan krijg je 4 uur begeleiding per week. Dat is 2 keer 2 uur.'
 
 export const PERIODES: Periode[] = [
   {

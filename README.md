@@ -1,9 +1,9 @@
-# Jaarplanner ABS — Rijn IJssel
+# Jaarplanner ABS, Rijn IJssel
 
 Digitaal dashboard voor studenten **Medewerker ABS, niveau 2, cohort 2026, leerjaar 1**.
 Het laat in één oogopslag zien hoeveel uur je per vak hebt in elke periode, wanneer je
 examens vallen en wanneer de stage begint. Daarnaast zit er een persoonlijke planner in
-die **uitsluitend lokaal** op de laptop van de student draait.
+die **alleen lokaal** op de laptop van de student draait.
 
 ---
 
@@ -23,7 +23,7 @@ USB-stick zetten of naar studenten mailen: dubbelklikken en het werkt, ook offli
 
 ## Privacy
 
-Dit is het uitgangspunt van de hele architectuur, niet een belofte achteraf:
+Dit is het uitgangspunt van de hele architectuur, en niet een belofte achteraf:
 
 - **Geen backend, geen database, geen account.** Er is geen server om data naartoe te sturen.
 - **Geen enkel extern netwerkverzoek.** Geen analytics, geen CDN, geen externe fonts.
@@ -56,7 +56,7 @@ Het bestand bevat de controlegetallen uit rij 25 en 26 van het bronbestand
 elke start de vakuren zelf op en vergelijkt die. Wijkt er iets af, dan verschijnt er
 **bovenaan het dashboard een zichtbare waarschuwing** in plaats van een stil verkeerd getal.
 
-Huidige stand: berekend 750 uur, bronbestand 750 uur — sluit exact.
+Huidige stand: berekend 750 uur, bronbestand 750 uur. Dat sluit exact.
 
 ### De cijfers
 
@@ -64,6 +64,14 @@ Huidige stand: berekend 750 uur, bronbestand 750 uur — sluit exact.
 - **750 uur** begeleide onderwijstijd (exclusief stage, net zoals de opleiding het rekent)
 - **400 uur** stage: 16 uur per week in periode 4 t/m 8
 - Zonder stageplek: **100 uur** begeleiding (4 uur per week, 2 × 2 uur)
+
+---
+
+## Taalniveau
+
+De teksten in de app zijn geschreven voor studenten op niveau 2: korte zinnen, gewone
+woorden, geen gedachtestreepjes en geen jargon. Het woord "backbone" staat daarom nergens
+in het studentenscherm; daar heet het "Je jaar op een rij".
 
 ---
 
@@ -92,9 +100,27 @@ overal in het dashboard en blijft lokaal.
 
 De backbone kent bij elk examen een kolom "kans". Kans 1 is een regulier examen, kans 2 is
 een herkansing die je alleen doet als je gezakt bent. De app toont die twee **niet** als
-gelijkwaardig: herkansingen staan gedempt en met de regel *"alleen als je de eerste kans
-niet gehaald hebt"*. Anders zou periode 5 er als vier examens uitzien terwijl het er voor de
+gelijkwaardig: herkansingen staan gedempt, met de regel *"alleen als je de eerste kans niet
+gehaald hebt"*. Anders zou periode 5 er als vier examens uitzien terwijl het er voor de
 meeste studenten nul zijn.
+
+---
+
+## Het logo erin zetten
+
+Het officiele logobestand zit niet in deze repository. Zet het er zo in:
+
+1. Vraag het logo op bij Marketing, Instroom en Communicatie, of pak het uit Docufiller.
+   Een SVG met doorzichtige achtergrond werkt het beste.
+2. Maak er een data-URI van: `base64 -w0 logo.svg`
+3. Plak de uitkomst in `src/assets/logo.ts`, achter `data:image/svg+xml;base64,`.
+
+Zolang daar `null` staat, toont de app het woordmerk als tekst. De app werkt dus altijd.
+
+Het logo staat op een wit vlak. Dat is geen smaakkeuze: de violette helft van het woordmerk
+haalt op de donkere achtergrond maar 2,08:1 contrast en is daar bijna niet te zien. Op wit
+haalt diezelfde kleur 8,64:1. Het witte vlak houdt ook de vrije ruimte rondom het logo aan
+die het huisstijlhandboek voorschrijft. De kleuren van het woordmerk zelf blijven ongewijzigd.
 
 ---
 
@@ -107,7 +133,7 @@ meeste studenten nul zijn.
   haalt dezelfde kleur 5,98:1. Alle twaalf datakleuren halen minimaal 5,4:1.
 - **Lettertype:** Maison is het huisstijllettertype, maar is commercieel en mag niet worden
   meegeleverd of van een externe server geladen. De stack is
-  `'Maison Neue', 'Maison', ui-sans-serif, system-ui, …` — staat Maison lokaal geïnstalleerd,
+  `'Maison Neue', 'Maison', ui-sans-serif, system-ui, …`. Staat Maison lokaal geïnstalleerd,
   dan gebruikt de browser het vanzelf; zo niet, dan valt hij netjes terug.
 - Kleur is nooit de enige drager van informatie: overal staan de cijfers en labels erbij.
 - Werkt met toetsenbord (periodekaarten met Enter, paneel sluit met Escape) en respecteert
@@ -122,9 +148,9 @@ Word-document en de Excel-backbone. **De Excel is als leidend aangehouden**, omd
 intern volledig doorgerekend en consistent is en het Word-document bovenaan nog een
 redactionele notitie draagt. Het is goed als de opleiding deze punten nakijkt:
 
-1. **Start keuzedelen.** Word: vanaf LE2. Excel: Sport in periode 1–2, keuzedelen vanaf
+1. **Start keuzedelen.** Word: vanaf LE2. Excel: Sport in periode 1 en 2, keuzedelen vanaf
    periode 3. Sport komt in het Word-document helemaal niet voor.
-2. **Duur van de stage.** Word: BPV in LE4–LE7, LE8 is "(Repair BPV)". Excel: stage in
+2. **Duur van de stage.** Word: BPV in LE4 t/m LE7, LE8 is "(Repair BPV)". Excel: stage in
    periode 4 t/m 8, vijf volle periodes.
 3. **Periode 8.** Word: alleen "Repair lessen". Excel: een volledig programma van 17 uur
    per week. De app volgt de Excel.
@@ -145,12 +171,12 @@ geen runtime-afhankelijkheden buiten React zelf.
 
 ```
 src/
-  data/curriculum.ts     ← de enige plek met roosterdata
-  lib/berekeningen.ts    ← uren, totalen, matrix, controle op het bronbestand
-  lib/datum.ts           ← periodedatums en "waar ben ik nu"
-  lib/opslag.ts          ← localStorage, afgeschermd tegen geblokkeerde opslag
-  components/            ← Jaaroverzicht, Urenmatrix, Planner, PeriodeDetail, Instellingen
-  styles/tokens.css      ← huisstijlkleuren met contrastwaarden in commentaar
+  data/curriculum.ts     <- de enige plek met roosterdata
+  lib/berekeningen.ts    <- uren, totalen, matrix, controle op het bronbestand
+  lib/datum.ts           <- periodedatums en "waar ben ik nu"
+  lib/opslag.ts          <- localStorage, afgeschermd tegen geblokkeerde opslag
+  components/            <- Jaaroverzicht, Urenmatrix, Planner, PeriodeDetail, Instellingen
+  styles/tokens.css      <- huisstijlkleuren met contrastwaarden in commentaar
 ```
 
 ---

@@ -98,7 +98,7 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
           )}
         </p>
 
-        <h3>Je vakken deze periode</h3>
+        <h3>Je vakken in deze periode</h3>
         {periode.vakken.map((v) => (
           <div className="regel" key={v.vakId}>
             <div style={{ minWidth: 0, flex: 1 }}>
@@ -109,26 +109,26 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
             </div>
             <div className="regel__uren">
               <b>{uren(v.urenPerWeek)}</b>
-              <span>uur p/w · {uren(v.urenPerWeek * periode.weken)}u totaal</span>
+              <span>uur per week · {uren(v.urenPerWeek * periode.weken)} uur totaal</span>
             </div>
           </div>
         ))}
 
         {stageWeek > 0 && (
           <>
-            <h3>{heeftStage ? 'Stage (BPV)' : 'Zonder stageplek'}</h3>
+            <h3>{heeftStage ? 'Je stage' : 'Nog geen stageplek'}</h3>
             <div className="regel regel--stage">
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div className="regel__naam">{heeftStage ? 'Stage' : 'Begeleiding zonder stageplek'}</div>
                 <div className="regel__uitleg">
                   {heeftStage
-                    ? 'Je loopt deze periode stage naast je lessen op school.'
+                    ? 'Deze periode loop je stage. Dat doe je naast je lessen op school.'
                     : periode.zonderStageToelichting}
                 </div>
               </div>
               <div className="regel__uren">
                 <b>{uren(stageWeek)}</b>
-                <span>uur p/w · {uren(stageTotaal)}u totaal</span>
+                <span>uur per week · {uren(stageTotaal)} uur totaal</span>
               </div>
             </div>
           </>
@@ -140,8 +140,7 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
             <div>
               <strong>Geen examens in deze periode</strong>
               <p>
-                Er staan voor periode {nummer} geen examens in de backbone van de opleiding. Gebruik deze
-                ruimte om voor te werken op wat er wél aankomt.
+                In periode {nummer} heb je geen examen. Gebruik deze tijd om alvast vooruit te werken.
               </p>
             </div>
           </div>
@@ -153,10 +152,10 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
                   <div className="regel__naam">{e.naam}</div>
                   <div className="regel__uitleg">
                     {e.soort === 'CE'
-                      ? 'Centraal examen'
+                      ? 'Centraal examen. Dit examen is in heel Nederland hetzelfde.'
                       : e.soort === 'IE'
-                        ? 'Instellingsexamen'
-                        : 'Werkproces-examen'}
+                        ? 'Instellingsexamen. Dit examen maakt Rijn IJssel zelf.'
+                        : 'Examen over een werkproces. Je laat zien dat je het werk kunt.'}
                     {e.vakId ? ` · ${VAKKEN[e.vakId].naam}` : ''}
                   </div>
                 </div>
@@ -168,7 +167,7 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div className="regel__naam">{e.naam}</div>
                   <div className="regel__uitleg">
-                    Herkansing — alleen als je de eerste kans niet gehaald hebt.
+                    Dit is een herkansing. Je doet dit alleen als je de eerste kans niet gehaald hebt.
                   </div>
                 </div>
                 <Merk soort="herkansing">2e kans</Merk>
@@ -180,7 +179,7 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
         <h3>Jouw taken in deze periode</h3>
         {eigenTaken.length === 0 ? (
           <p className="hint">
-            Je hebt nog geen eigen taken gekoppeld aan periode {nummer}. Dat doe je bij “Mijn planner”.
+            Je hebt nog geen taken bij periode {nummer} gezet. Dat doe je bij “Mijn planner”.
           </p>
         ) : (
           eigenTaken.map((t) => (
@@ -191,13 +190,13 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
                 </div>
                 <div className="regel__uitleg">
                   {t.vakId ? VAKKEN[t.vakId].naam : 'Geen vak'} ·{' '}
-                  {t.status === 'klaar' ? 'afgerond' : t.status === 'bezig' ? 'mee bezig' : 'nog te doen'}
+                  {t.status === 'klaar' ? 'klaar' : 'nog te doen'}
                 </div>
               </div>
               {t.geschatteUren > 0 && (
                 <div className="regel__uren">
                   <b>{uren(t.geschatteUren)}</b>
-                  <span>uur gepland</span>
+                  <span>uur ingepland</span>
                 </div>
               )}
             </div>

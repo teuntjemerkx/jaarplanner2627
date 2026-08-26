@@ -4,6 +4,7 @@ import PeriodeDetail from './components/PeriodeDetail'
 import Planner from './components/Planner'
 import Urenmatrix from './components/Urenmatrix'
 import Instellingen from './components/Instellingen'
+import Logo from './components/Logo'
 import { OPLEIDING, PERIODES } from './data/curriculum'
 import { controleerData } from './lib/berekeningen'
 import { bepaalHuidigePositie, berekenPeriodeDatums } from './lib/datum'
@@ -41,7 +42,7 @@ export default function App() {
   if (!geladen) {
     return (
       <main className="omhulsel" style={{ paddingTop: 80 }}>
-        <p className="hint">Bezig met laden…</p>
+        <p className="hint">Even laden…</p>
       </main>
     )
   }
@@ -51,10 +52,7 @@ export default function App() {
       <header className="kop">
         <div className="omhulsel">
           <div className="kop__binnen">
-            <span className="woordmerk" aria-label="Rijn IJssel">
-              <span>rijn</span>
-              <span>IJssel</span>
-            </span>
+            <Logo />
             <span className="kop__scheiding" aria-hidden="true" />
             <span className="kop__label">
               <strong>Jaarplanner {OPLEIDING.naam}</strong>
@@ -104,9 +102,8 @@ export default function App() {
             <div>
               <strong>De roosterdata klopt niet met het bronbestand</strong>
               <p>
-                Er is iets aangepast in <code>src/data/curriculum.ts</code> waardoor de uren niet meer
-                optellen tot de controlegetallen uit de backbone. Meld dit bij je docent voordat je op deze
-                cijfers vertrouwt.
+                De uren in dit dashboard kloppen niet meer met het rooster van de opleiding. Vertel dit
+                aan je docent voordat je op deze cijfers vertrouwt.
               </p>
               <ul>
                 {controle.meldingen.map((m, i) => (
@@ -122,8 +119,8 @@ export default function App() {
             <div>
               <strong>Je taken worden niet bewaard</strong>
               <p>
-                Deze browser blokkeert opslag (bijvoorbeeld in een privévenster). Je kunt alles gewoon
-                gebruiken, maar bij het sluiten van het tabblad ben je je planning kwijt.
+                Deze browser slaat niets op. Dat gebeurt bijvoorbeeld in een privévenster. Je kunt de app
+                gewoon gebruiken. Maar als je dit tabblad sluit, ben je je planning kwijt.
               </p>
             </div>
           </div>
@@ -172,10 +169,10 @@ export default function App() {
 
         <footer className="voet">
           <span>
-            Roosterdata: {OPLEIDING.bron}. Wijkt er iets af van je echte rooster? Je docent en de
-            studiewijzer gaan altijd voor.
+            De uren komen uit het rooster van de opleiding. Klopt er iets niet met je echte rooster? Dan
+            gaan je docent en de studiewijzer altijd voor.
           </span>
-          <span>Je persoonlijke planning staat alleen op dit apparaat.</span>
+          <span>Je eigen planning staat alleen op dit apparaat.</span>
         </footer>
       </main>
 

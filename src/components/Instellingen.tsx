@@ -50,7 +50,7 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
       a.remove()
       setTimeout(() => URL.revokeObjectURL(url), 0)
       setBericht(
-        'Als je browser downloads toestaat, staat de back-up nu in je map Downloads. Gebeurt er niets? Gebruik dan “Kopieer naar klembord”.',
+        'Staat je browser downloaden toe? Dan staat de back-up nu in je map Downloads. Gebeurt er niets? Gebruik dan de knop “Kopieer naar klembord”.',
       )
     } catch {
       setFout('Downloaden lukt niet in dit venster. Gebruik de knop “Kopieer naar klembord”.')
@@ -61,9 +61,9 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
     setFout('')
     try {
       await navigator.clipboard.writeText(JSON.stringify(data, null, 2))
-      setBericht('Je gegevens staan op het klembord. Plak ze in een tekstbestand om te bewaren.')
+      setBericht('Je gegevens staan op het klembord. Plak ze in een tekstbestand om ze te bewaren.')
     } catch {
-      setFout('Kopiëren is geblokkeerd door je browser. Gebruik de downloadknop.')
+      setFout('Je browser blokkeert kopiëren. Gebruik dan de knop om te downloaden.')
     }
   }
 
@@ -77,16 +77,16 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
         if (nieuw?.versie !== 1 || !Array.isArray(nieuw.taken)) {
           throw new Error('onbekend formaat')
         }
-        if (!window.confirm('Dit vervangt je huidige taken en instellingen. Doorgaan?')) return
+        if (!window.confirm('Let op: je taken en instellingen van nu worden vervangen. Wil je doorgaan?')) return
         onVervang({
           versie: 1,
           instellingen: { ...LEGE_DATA.instellingen, ...nieuw.instellingen },
           taken: nieuw.taken,
         })
-        setBericht('Back-up teruggezet.')
+        setBericht('Je back-up staat er weer in.')
         setFout('')
       } catch {
-        setFout('Dit bestand kon niet gelezen worden. Kies een back-up die uit deze app komt.')
+        setFout('Dit bestand kan de app niet lezen. Kies een back-up die uit deze app komt.')
       }
     }
     lezer.readAsText(bestand)
@@ -99,7 +99,7 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
         <div>
           <h2 className="sectie__titel">Instellingen</h2>
           <p className="sectie__uitleg">
-            Alles hieronder geldt alleen voor jouw laptop. Er wordt niets verstuurd of gedeeld.
+            Alles hieronder geldt alleen voor jouw laptop. Er wordt niets verstuurd en niets gedeeld.
           </p>
         </div>
       </div>
@@ -109,8 +109,8 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
           <div>
             <strong>Je browser slaat niets op</strong>
             <p>
-              Waarschijnlijk sta je in een privévenster of blokkeert je browser opslag voor deze pagina.
-              De app werkt gewoon, maar je taken zijn weg zodra je het tabblad sluit.
+              Je zit waarschijnlijk in een privévenster. Of je browser blokkeert opslag voor deze pagina.
+              De app werkt gewoon. Maar je taken zijn weg zodra je dit tabblad sluit.
             </p>
           </div>
         </div>
@@ -119,9 +119,9 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
       <div className="kaart" style={{ padding: 'clamp(18px, 2.6vw, 26px)', marginBottom: 18 }}>
         <h3 style={{ fontSize: 'var(--stap-1)', marginBottom: 6 }}>Schooljaar</h3>
         <p className="hint" style={{ marginBottom: 14 }}>
-          De backbone van de opleiding bevat geen datums. Vul de eerste schooldag van periode 1 in; de app
-          rekent dan {PERIODES.length} periodes van {WEKEN_PER_PERIODE} weken door. Vallen er vakanties
-          tussen, dan pas je de betreffende periode daaronder los aan.
+          Het rooster van de opleiding heeft geen datums. Vul hieronder de eerste schooldag van periode 1
+          in. De app rekent dan {PERIODES.length} periodes van {WEKEN_PER_PERIODE} weken uit. Zit er een
+          vakantie tussen? Dan pas je die periode daaronder zelf aan.
         </p>
 
         <div className="raster" style={{ marginBottom: 16 }}>
@@ -148,7 +148,7 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
 
         {datums && (
           <>
-            <h4 style={{ fontSize: 'var(--stap-0)', margin: '18px 0 8px' }}>Startdatum per periode bijstellen</h4>
+            <h4 style={{ fontSize: 'var(--stap-0)', margin: '18px 0 8px' }}>Klopt een datum niet? Pas hem hier aan</h4>
             <div className="raster">
               {PERIODES.map((p, i) => (
                 <div className="veld" key={p.nummer}>
@@ -160,17 +160,17 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
                     onChange={(e) => zetPeriodeStart(i, e.target.value)}
                   />
                   <span className="hint">
-                    t/m {formatLang(plusDagen(datums[i].start, WEKEN_PER_PERIODE * 7 - 1))}
+                    loopt t/m {formatLang(plusDagen(datums[i].start, WEKEN_PER_PERIODE * 7 - 1))}
                   </span>
                 </div>
               ))}
             </div>
             <div className="melding melding--info" style={{ marginTop: 16 }}>
               <div>
-                <strong>Controleer deze datums met de schooljaarkalender</strong>
+                <strong>Kijk deze datums na in de schoolkalender</strong>
                 <p>
-                  Ze zijn doorgerekend vanaf de datum die jij hebt ingevuld, zonder rekening te houden met
-                  vakanties. Klopt er iets niet, corrigeer het dan hierboven.
+                  De app rekent vanaf de datum die jij hebt ingevuld. Vakanties zitten er niet in. Klopt
+                  er iets niet? Pas het dan hierboven aan.
                 </p>
               </div>
             </div>
@@ -191,7 +191,7 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
               onChange={(e) => onZet({ keuzedeelNaam: e.target.value })}
             />
             <span className="hint">
-              Alleen voor jezelf — dit blijft op je eigen laptop en gaat niet naar de opleiding.
+              Dit is alleen voor jezelf. Het blijft op je eigen laptop en gaat niet naar de opleiding.
             </span>
           </div>
           <div className="veld">
@@ -215,7 +215,7 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
               </button>
             </div>
             <span className="hint">
-              Zonder stageplek volg je 4 uur begeleiding per week (2 × 2 uur) in plaats van 16 uur stage.
+              Heb je nog geen stageplek? Dan krijg je 4 uur begeleiding per week in plaats van 16 uur stage.
             </span>
           </div>
         </div>
@@ -227,9 +227,9 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
           <div>
             <strong>Waar staat je planning?</strong>
             <p>
-              In de opslag van deze browser, op dit apparaat. Er is geen server, geen inlog en geen
-              database. Klasgenoten en docenten kunnen er technisch niet bij. Wis je je browsergegevens
-              of gebruik je een andere laptop, dan is je planning weg — maak daarom af en toe een back-up.
+              In deze browser, op dit apparaat. Er is geen server, geen inlog en geen database.
+              Klasgenoten en docenten kunnen er dus niet bij. Wis je je browsergegevens? Of gebruik je een
+              andere laptop? Dan is je planning weg. Maak daarom af en toe een back-up.
             </p>
           </div>
         </div>
@@ -259,12 +259,12 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
             onClick={() => {
               if (
                 window.confirm(
-                  'Alles wissen? Je taken, deadlines en instellingen verdwijnen definitief van dit apparaat.',
+                  'Wil je echt alles wissen? Je taken, deadlines en instellingen zijn dan voorgoed weg van dit apparaat.',
                 )
               ) {
                 wisData()
                 onVervang(LEGE_DATA)
-                setBericht('Alle gegevens zijn van dit apparaat gewist.')
+                setBericht('Alles is gewist van dit apparaat.')
               }
             }}
           >
@@ -295,7 +295,7 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
             <div>
               <strong>Doorgerekend en akkoord</strong>
               <p>
-                De uren in dit dashboard tellen exact op tot de controlegetallen uit het bronbestand:{' '}
+                De uren in dit dashboard kloppen precies met het rooster van de opleiding:{' '}
                 {uren(totaalBotUrenJaar())} lesuren over {PERIODES.length} periodes.
               </p>
             </div>

@@ -50,9 +50,18 @@ main.omhulsel { padding-top: 18px; }
   display: flex; align-items: center; gap: 18px;
   min-height: 68px; flex-wrap: wrap;
 }
+/* Wit vlak onder het logo: het violet van het woordmerk haalt op de donkere
+   achtergrond maar 2,08:1 en is daar bijna onzichtbaar. De ruime padding houdt
+   de vrije ruimte rondom het logo aan die de huisstijl voorschrijft. */
+.merkplaat {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; border-radius: 12px; padding: 8px 14px; flex: 0 0 auto;
+  box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.8);
+}
+.merkplaat__logo { display: block; height: clamp(20px, 1rem + 0.9vw, 26px); width: auto; }
 .woordmerk {
-  font-size: clamp(1.15rem, 1rem + 0.8vw, 1.5rem);
-  font-weight: 800; letter-spacing: -0.045em; white-space: nowrap;
+  font-size: clamp(1.05rem, 0.95rem + 0.7vw, 1.35rem);
+  font-weight: 800; letter-spacing: -0.045em; white-space: nowrap; line-height: 1.1;
 }
 .woordmerk span:first-child { color: var(--ri-oranje); }
 .woordmerk span:last-child { color: var(--ri-lichtpaars-1); }

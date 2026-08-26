@@ -36,9 +36,9 @@ export default function Urenmatrix({ datums, positie, heeftStage, keuzedeelNaam,
         <div>
           <h2 className="sectie__titel">Urenmatrix</h2>
           <p className="sectie__uitleg">
-            Alle uren per vak, per periode — de getallen zijn <strong>lesuren per week</strong>. Eén periode
-            duurt {WEKEN_PER_PERIODE} weken, dus vermenigvuldig met {WEKEN_PER_PERIODE} voor het totaal.
-            De laatste kolom laat zien hoeveel klokuren je dit leerjaar in totaal aan dat vak besteedt.
+            In deze tabel zie je hoeveel uur je per week aan elk vak hebt. Elke periode duurt{' '}
+            {WEKEN_PER_PERIODE} weken. Wil je het totaal van een periode weten? Doe het getal dan keer{' '}
+            {WEKEN_PER_PERIODE}. In de laatste kolom staat hoeveel uur je dit jaar in totaal aan dat vak hebt.
           </p>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function Urenmatrix({ datums, positie, heeftStage, keuzedeelNaam,
                 {r.perPeriode.map((u, i) => (
                   <td key={i} className={u === 0 ? 'nul' : undefined}>
                     {u === 0 ? (
-                      '–'
+                      <span title="Dit vak heb je niet in deze periode">0</span>
                     ) : (
                       <span className="waarde" style={vlakStijl(u, r.kleur, maxUren)}>
                         {uren(u)}
@@ -120,7 +120,7 @@ export default function Urenmatrix({ datums, positie, heeftStage, keuzedeelNaam,
                 return (
                   <td key={p.nummer} className={u === 0 ? 'nul' : undefined}>
                     {u === 0 ? (
-                      '–'
+                      <span title="In deze periode loop je nog geen stage">0</span>
                     ) : (
                       <span className="waarde" style={{ background: 'var(--ri-oranje)', color: '#fff' }}>
                         {uren(u)}
@@ -139,10 +139,10 @@ export default function Urenmatrix({ datums, positie, heeftStage, keuzedeelNaam,
         <div>
           <strong>Zo lees je deze tabel</strong>
           <p>
-            Een “–” betekent dat het vak in die periode niet op je rooster staat. {VAKKEN.sport.naam} loopt
-            alleen in periode 1 en 2, {VAKKEN.keuzedelen.naam} starten in periode 3, en{' '}
-            {VAKKEN.projectenabs.naam} en {VAKKEN.sollicitatietraining.naam} stoppen na periode 3. De rij
-            “Lesuren per week” is exclusief stage, precies zoals de opleiding het rekent.
+            Staat er een 0? Dan heb je dat vak in die periode niet. {VAKKEN.sport.naam} heb je alleen
+            in periode 1 en 2. {VAKKEN.keuzedelen.naam} beginnen in periode 3.{' '}
+            {VAKKEN.projectenabs.naam} en {VAKKEN.sollicitatietraining.naam} stoppen na periode 3. In de rij
+            “Lesuren per week” telt de stage niet mee. Zo rekent de opleiding het ook.
           </p>
         </div>
       </div>

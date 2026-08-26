@@ -69,12 +69,12 @@ export default function Planner({ taken, positie, keuzedeelNaam, onVoegToe, onWi
     e.preventDefault()
     const titel = formulier.titel.trim()
     if (!titel) {
-      setFout('Geef je taak een naam, anders weet je later niet meer wat je moest doen.')
+      setFout('Geef je taak een naam. Anders weet je later niet meer wat je moest doen.')
       return
     }
     const geschat = Number(formulier.geschatteUren)
     if (formulier.geschatteUren !== '' && (!Number.isFinite(geschat) || geschat < 0)) {
-      setFout('Vul bij studie-uren een getal van 0 of hoger in.')
+      setFout('Vul bij studie-uren een getal in van 0 of hoger.')
       return
     }
     setFout('')
@@ -121,20 +121,20 @@ export default function Planner({ taken, positie, keuzedeelNaam, onVoegToe, onWi
         <div>
           <h2 className="sectie__titel">Mijn planner</h2>
           <p className="sectie__uitleg">
-            Je eigen taken, deadlines en studie-uren. Alles wat je hier invult blijft op deze laptop staan:
-            er is geen server, geen account en geen klasgenoot die kan meekijken.
+            Hier zet je je eigen taken en deadlines. Alles wat je invult blijft op deze laptop staan. Er is
+            geen server en geen account. Klasgenoten kunnen dus niet meekijken.
           </p>
         </div>
       </div>
 
       <div className="hero__cijfers" style={{ marginBottom: 20 }}>
-        <Cijfer waarde={open.length} label={open.length === 1 ? 'open taak' : 'open taken'} />
-        <Cijfer waarde={urenGepland} label="uur zelf gepland" eenheid="u" />
+        <Cijfer waarde={open.length} label={open.length === 1 ? 'taak te doen' : 'taken te doen'} />
+        <Cijfer waarde={urenGepland} label="uur ingepland" eenheid="u" />
         <Cijfer
-          waarde={eerstvolgende ? formatMetDag(eerstvolgende) : '—'}
-          label="eerstvolgende deadline"
+          waarde={eerstvolgende ? formatMetDag(eerstvolgende) : 'geen'}
+          label="eerste deadline"
         />
-        <Cijfer waarde={taken.filter((t) => t.status === 'klaar').length} label="afgerond" />
+        <Cijfer waarde={taken.filter((t) => t.status === 'klaar').length} label="taken klaar" />
       </div>
 
       <div className="planner">
@@ -147,7 +147,7 @@ export default function Planner({ taken, positie, keuzedeelNaam, onVoegToe, onWi
               id="t-titel"
               value={formulier.titel}
               maxLength={140}
-              placeholder="Bijv. verslag Business Services afmaken"
+              placeholder="Bijvoorbeeld: verslag afmaken"
               onChange={(e) => setFormulier({ ...formulier, titel: e.target.value })}
             />
           </div>
@@ -200,7 +200,7 @@ export default function Planner({ taken, positie, keuzedeelNaam, onVoegToe, onWi
               />
             </div>
             <div className="veld">
-              <label htmlFor="t-uren">Studie-uren</label>
+              <label htmlFor="t-uren">Hoeveel uur kost het?</label>
               <input
                 id="t-uren"
                 type="number"
@@ -220,7 +220,7 @@ export default function Planner({ taken, positie, keuzedeelNaam, onVoegToe, onWi
             <textarea
               id="t-notitie"
               maxLength={600}
-              placeholder="Optioneel: waar moet je op letten?"
+              placeholder="Hoeft niet. Waar moet je op letten?"
               value={formulier.notitie}
               onChange={(e) => setFormulier({ ...formulier, notitie: e.target.value })}
             />
@@ -258,7 +258,7 @@ export default function Planner({ taken, positie, keuzedeelNaam, onVoegToe, onWi
               [
                 ['open', 'Nog te doen'],
                 ['week', 'Deze week'],
-                ['klaar', 'Afgerond'],
+                ['klaar', 'Klaar'],
                 ['alles', 'Alles'],
               ] as [Filter, string][]
             ).map(([sleutel, label]) => (
@@ -281,8 +281,8 @@ export default function Planner({ taken, positie, keuzedeelNaam, onVoegToe, onWi
               </strong>
               <p>
                 {taken.length === 0
-                  ? 'Voeg links je eerste taak toe. Begin bijvoorbeeld met de eerstvolgende opdracht die je moet inleveren.'
-                  : 'Kies een ander filter om je andere taken te zien.'}
+                  ? 'Zet hiernaast je eerste taak erin. Begin met de opdracht die je het eerst moet inleveren.'
+                  : 'Klik op een andere knop om je andere taken te zien.'}
               </p>
             </div>
           ) : (
@@ -325,7 +325,7 @@ export default function Planner({ taken, positie, keuzedeelNaam, onVoegToe, onWi
                                     ? 'vandaag'
                                     : dagen === 1
                                       ? 'morgen'
-                                      : `over ${dagen} dagen`}
+                                      : `nog ${dagen} dagen`}
                               </>
                             )}
                           </span>
@@ -343,7 +343,7 @@ export default function Planner({ taken, positie, keuzedeelNaam, onVoegToe, onWi
                         type="button"
                         className="knop knop--stil knop--klein"
                         onClick={() => {
-                          if (window.confirm(`"${t.titel}" definitief verwijderen?`)) onVerwijder(t.id)
+                          if (window.confirm(`Wil je "${t.titel}" echt weggooien? Dit kun je niet terugdraaien.`)) onVerwijder(t.id)
                         }}
                       >
                         Wis

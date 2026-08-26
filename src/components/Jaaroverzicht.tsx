@@ -55,12 +55,12 @@ export default function Jaaroverzicht({
         <div className="kaart hero__hoofd">
           <p className="hero__oog">Leerjaar 1 · cohort 2026 · niveau 2</p>
           <h1 className="hero__titel">
-            Jouw jaar in <em>één oogopslag</em>
+            Jouw hele jaar <em>op één plek</em>
           </h1>
           <p className="hero__onder">
-            Acht periodes van {WEKEN_PER_PERIODE} weken. Hieronder zie je precies hoeveel uur je per vak
-            hebt in elke periode, wanneer je examens vallen en wanneer je stage begint. Klik op een
-            periode voor alle details.
+            Je jaar bestaat uit {PERIODES.length} periodes. Elke periode duurt {WEKEN_PER_PERIODE} weken.
+            Hieronder zie je hoeveel uur je per vak hebt. Ook zie je wanneer je examen doet en wanneer je
+            stage begint. Klik op een periode voor meer info.
           </p>
           <div className="hero__cijfers">
             <Cijfer waarde={PERIODES.length} label="periodes" />
@@ -91,27 +91,27 @@ export default function Jaaroverzicht({
                 <>
                   <h2 className="nu__periode">Periode {positie.periodeNummer}</h2>
                   <p className="nu__meta">
-                    Start over {positie.dagenTotEind} {positie.dagenTotEind === 1 ? 'dag' : 'dagen'}.
+                    Begint over {positie.dagenTotEind} {positie.dagenTotEind === 1 ? 'dag' : 'dagen'}.
                   </p>
                 </>
               ) : (
                 <>
-                  <h2 className="nu__periode">Alle periodes voorbij</h2>
-                  <p className="nu__meta">Het schooljaar zoals ingesteld is afgelopen.</p>
+                  <h2 className="nu__periode">Je jaar zit erop</h2>
+                  <p className="nu__meta">Alle periodes die je hebt ingevuld zijn voorbij.</p>
                 </>
               )}
               <div className="nu__balk">
                 <i style={{ width: `${Math.min(100, Math.max(0, voortgang))}%` }} />
               </div>
-              <p className="hint">{Math.round(voortgang)}% van het lesjaar afgelegd</p>
+              <p className="hint">Je hebt {Math.round(voortgang)}% van het jaar gehad</p>
             </>
           ) : (
             <>
               <span className="nu__badge">Nog instellen</span>
               <h2 className="nu__periode">Wanneer start periode 1?</h2>
               <p className="nu__meta">
-                De schooldatums staan niet in de backbone van de opleiding. Vul de startdatum één keer
-                in, dan weet dit dashboard waar je nu bent en welke deadlines eraan komen.
+                De datums staan niet in het rooster van de opleiding. Vul de eerste schooldag één keer in.
+                Daarna zie je altijd in welke periode je zit.
               </p>
               <button type="button" className="knop knop--primair" onClick={onGaNaarInstellingen}>
                 Startdatum invullen
@@ -125,14 +125,14 @@ export default function Jaaroverzicht({
         <div className="sectie__kop">
           <div>
             <h2 className="sectie__titel" id="backbone-titel">
-              De backbone van je jaar
+              Je jaar op een rij
             </h2>
             <p className="sectie__uitleg">
-              Elk blokje is één periode. De gekleurde balk laat zien hoe je lesuren over de vakken
-              verdeeld zijn. Vanaf periode 4 komt de stage erbij.
+              Elk blokje is één periode. De gekleurde balk laat zien hoeveel uur je aan elk vak hebt.
+              Vanaf periode 4 ga je ook op stage.
             </p>
           </div>
-          <p className="hint">Klik op een periode →</p>
+          <p className="hint">Klik op een periode voor meer info</p>
         </div>
 
         <div className="rail">
@@ -162,7 +162,7 @@ export default function Jaaroverzicht({
                   </span>
                   {isNu && <Merk soort="nu">nu</Merk>}
                 </div>
-                <span className="pk__datum">{d ? `${formatKort(d.start)} – ${formatKort(d.eind)}` : `${p.weken} weken`}</span>
+                <span className="pk__datum">{d ? `${formatKort(d.start)} t/m ${formatKort(d.eind)}` : `${p.weken} weken`}</span>
                 <Stapelbalk delen={periodeStapel(p)} />
                 <div className="pk__uren">
                   <b>{uren(week)}</b>
@@ -190,10 +190,11 @@ export default function Jaaroverzicht({
         <div className="sectie__kop">
           <div>
             <h2 className="sectie__titel" id="grootste-titel">
-              Waar gaat je tijd heen?
+              Waar gaat je tijd naartoe?
             </h2>
             <p className="sectie__uitleg">
-              Alle lesuren van het hele leerjaar bij elkaar opgeteld, per vak. Stage staat er los van.
+              Dit zijn alle lesuren van het hele jaar bij elkaar opgeteld, per vak. De stage telt hier
+              niet mee.
             </p>
           </div>
         </div>
