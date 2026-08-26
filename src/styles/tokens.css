@@ -1,0 +1,89 @@
+/* ============================================================================
+ *  HUISSTIJL RIJN IJSSEL - DESIGN TOKENS
+ * ----------------------------------------------------------------------------
+ *  Basiskleuren en ondersteunende kleuren komen 1-op-1 uit het huisstijl-
+ *  handboek. De contrastwaarden in het commentaar zijn berekend volgens de
+ *  WCAG 2.2-formule tegen de donkere canvaskleur #1A1033.
+ *
+ *  Waarom een donkere basis? Op wit haalt huisstijl-oranje (#F86800) slechts
+ *  3,01:1 en blijft daarmee onder de eis van 4,5:1 voor normale tekst. Op
+ *  #1A1033 haalt dezelfde kleur 5,98:1. De donkere basis maakt het complete
+ *  huisstijlpalet bruikbaar als tekst- en accentkleur.
+ * ========================================================================== */
+
+:root {
+  /* --- Basiskleuren huisstijl --- */
+  --ri-oranje: #f86800;          /* PMS Orange 021 */
+  --ri-violet: #610fca;          /* PMS Violet     */
+
+  /* --- Ondersteunende kleuren huisstijl --- */
+  --ri-donkerpaars: #520dab;
+  --ri-lichtpaars-1: #d7c3f2;
+  --ri-lichtpaars-2: #eeeefd;
+  --ri-blauw: #209fea;
+  --ri-groen: #5dd9c1;
+
+  /* --- Vlakken --- */
+  --canvas: #1a1033;
+  --canvas-diep: #120a24;
+  --vlak: #251746;
+  --vlak-hoog: #2f1d59;
+  --vlak-zacht: rgba(215, 195, 242, 0.07);
+  --rand: rgba(215, 195, 242, 0.16);
+  --rand-sterk: rgba(215, 195, 242, 0.32);
+
+  /* --- Tekst (contrast t.o.v. --canvas) --- */
+  --tekst: #eeeefd;              /* 15,68:1 */
+  --tekst-zacht: #d7c3f2;        /* 11,13:1 */
+  --tekst-gedempt: #b9a7de;      /*  8,27:1 */
+  --tekst-op-licht: #1a1033;
+
+  /* --- Functionele kleuren --- */
+  --accent: #ff7a1a;             /*  6,91:1 - iets opgehelderd oranje voor tekst */
+  --accent-vlak: var(--ri-oranje);
+  --ok: #5dd9c1;                 /* 10,43:1 */
+  --let-op: #ffc44d;             /* 11,37:1 */
+  --info: #7be0ff;               /* 11,96:1 */
+
+  /* --- Typografie ---
+   * Maison is het huisstijllettertype, maar is commercieel en mag niet
+   * worden meegeleverd of van een externe server geladen. Staat het lokaal
+   * geinstalleerd, dan pakt de browser het vanzelf. Zo niet, dan valt de
+   * stack terug op de systeem-sans. Er worden geen externe fonts geladen.
+   */
+  --font: 'Maison Neue', 'Maison', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --stap--1: clamp(0.75rem, 0.72rem + 0.15vw, 0.82rem);
+  --stap-0: clamp(0.9rem, 0.86rem + 0.2vw, 1rem);
+  --stap-1: clamp(1.05rem, 0.98rem + 0.35vw, 1.25rem);
+  --stap-2: clamp(1.3rem, 1.15rem + 0.7vw, 1.75rem);
+  --stap-3: clamp(1.7rem, 1.4rem + 1.4vw, 2.6rem);
+  --stap-4: clamp(2.2rem, 1.6rem + 2.6vw, 3.8rem);
+
+  /* --- Ruimte en vorm --- */
+  --r-s: 10px;
+  --r-m: 16px;
+  --r-l: 22px;
+  --r-xl: 30px;
+  --schaduw: 0 18px 40px -22px rgba(0, 0, 0, 0.85);
+  --schaduw-hoog: 0 26px 60px -26px rgba(0, 0, 0, 0.9);
+  --gloed-oranje: 0 0 0 1px rgba(248, 104, 0, 0.5), 0 0 34px -6px rgba(248, 104, 0, 0.5);
+
+  --breedte: 1240px;
+  --overgang: 180ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --overgang: 1ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
