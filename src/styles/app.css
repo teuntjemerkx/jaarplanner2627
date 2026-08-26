@@ -50,15 +50,21 @@ main.omhulsel { padding-top: 18px; }
   display: flex; align-items: center; gap: 18px;
   min-height: 68px; flex-wrap: wrap;
 }
-/* Wit vlak onder het logo: het violet van het woordmerk haalt op de donkere
-   achtergrond maar 2,08:1 en is daar bijna onzichtbaar. De ruime padding houdt
-   de vrije ruimte rondom het logo aan die de huisstijl voorschrijft. */
+/* Wit vlak onder het logo. Twee redenen, allebei nagerekend:
+   1. Het violet van het woordmerk (#610FCA) haalt op de donkere achtergrond
+      maar 2,08:1 en is daar bijna onzichtbaar. Op wit haalt het 8,64:1.
+   2. De huisstijl eist rondom het logo minimaal de hoogte van de letter n
+      vrije ruimte. In het logobestand (1530 x 472) is de letterstam 191 px
+      hoog en zit er al 88 px witruimte boven en 164 px links. Bij een
+      weergavehoogte van 32 px komt dat neer op 6,0 px boven en 11,1 px links,
+      terwijl 13,0 px vereist is. De padding hieronder vult dat tekort aan:
+      boven 8 + 6,0 = 14,0 px en links 10 + 11,1 = 21,1 px. */
 .merkplaat {
   display: inline-flex; align-items: center; justify-content: center;
-  background: #fff; border-radius: 12px; padding: 8px 14px; flex: 0 0 auto;
+  background: #fff; border-radius: 12px; padding: 8px 10px; flex: 0 0 auto;
   box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.8);
 }
-.merkplaat__logo { display: block; height: clamp(20px, 1rem + 0.9vw, 26px); width: auto; }
+.merkplaat__logo { display: block; height: clamp(26px, 1.1rem + 1.1vw, 32px); width: auto; }
 .woordmerk {
   font-size: clamp(1.05rem, 0.95rem + 0.7vw, 1.35rem);
   font-weight: 800; letter-spacing: -0.045em; white-space: nowrap; line-height: 1.1;

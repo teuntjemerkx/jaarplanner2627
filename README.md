@@ -109,29 +109,38 @@ meeste studenten nul zijn.
 
 ---
 
-## Het logo erin zetten
+## Het logo
 
-Het officiele logobestand zit niet in deze repository. Zet het er zo in:
+Het woordmerk staat linksboven in de kop. Het bronbestand zit in de repository als
+`src/assets/bron/rijnijssel-logo.png` (1530 x 472, RGBA met doorzichtige achtergrond).
+De app gebruikt het als data-URI in `src/assets/logo.ts`, zodat er geen enkel extern
+verzoek nodig is en de losse HTML-build offline blijft werken.
 
-1. Vraag het logo op bij Marketing, Instroom en Communicatie, of pak het uit Docufiller.
-   Een SVG met doorzichtige achtergrond werkt het beste.
-2. Draai dit commando:
+Een ander bestand erin zetten gaat zo:
 
-   ```bash
-   node scripts/logo.mjs pad/naar/logo.svg
-   npm run build
-   ```
+```bash
+node scripts/logo.mjs pad/naar/logo.svg
+npm run build
+```
 
-Het script zet het bestand om naar een data-URI, schrijft die in `src/assets/logo.ts` en
-leest de verhouding breedte : hoogte uit het bestand zelf. Weghalen kan met
-`node scripts/logo.mjs --wis`.
+Het script zet het bestand om naar een data-URI, schrijft die weg en leest de verhouding
+breedte : hoogte uit het bestand zelf. Weghalen kan met `node scripts/logo.mjs --wis`;
+de app toont dan het woordmerk als tekst en blijft gewoon werken.
 
-Zolang daar `null` staat, toont de app het woordmerk als tekst. De app werkt dus altijd.
+### Waarom het logo op een wit vlak staat
 
-Het logo staat op een wit vlak. Dat is geen smaakkeuze: de violette helft van het woordmerk
-haalt op de donkere achtergrond maar 2,08:1 contrast en is daar bijna niet te zien. Op wit
-haalt diezelfde kleur 8,64:1. Het witte vlak houdt ook de vrije ruimte rondom het logo aan
-die het huisstijlhandboek voorschrijft. De kleuren van het woordmerk zelf blijven ongewijzigd.
+Twee redenen, allebei nagerekend:
+
+1. **Contrast.** Het violet van het woordmerk (`#610FCA`) haalt op de donkere achtergrond
+   van dit dashboard maar 2,08:1 en is daar bijna onzichtbaar. Op wit haalt dezelfde kleur
+   8,64:1.
+2. **Vrije ruimte.** De huisstijl eist rondom het logo minimaal de hoogte van de letter n.
+   In het bestand is die letterstam 191 px hoog, en er zit al 88 px witruimte boven en
+   164 px links. Bij een weergavehoogte van 32 px is dat 6,0 px boven en 11,1 px links,
+   terwijl 13,0 px vereist is. De padding van het witte vlak vult dat tekort aan.
+
+De kleuren van het woordmerk zelf worden nooit aangepast. Ter controle: het bestand bevat
+precies twee kleuren, `#610FCA` en `#F86800`, exact de basiskleuren uit het handboek.
 
 ---
 
