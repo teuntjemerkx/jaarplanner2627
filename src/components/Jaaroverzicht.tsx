@@ -14,7 +14,6 @@ import { Cijfer, Icoon, Legenda, Merk, Stapelbalk, periodeStapel } from './Basis
 interface Props {
   datums: PeriodeDatums[] | null
   positie: HuidigePositie | null
-  heeftStage: boolean
   taken: Taak[]
   onKiesPeriode: (nummer: number) => void
   onGaNaarInstellingen: () => void
@@ -23,14 +22,13 @@ interface Props {
 export default function Jaaroverzicht({
   datums,
   positie,
-  heeftStage,
   taken,
   onKiesPeriode,
   onGaNaarInstellingen,
 }: Props) {
   const matrix = bouwVakMatrix()
   const botJaar = totaalBotUrenJaar()
-  const stageJaar = totaalStageUrenJaar(heeftStage)
+  const stageJaar = totaalStageUrenJaar()
   const nuNummer = positie?.status === 'in' ? positie.periodeNummer : null
 
   const openTakenPerPeriode = new Map<number, number>()
@@ -66,7 +64,7 @@ export default function Jaaroverzicht({
             <Cijfer waarde={PERIODES.length} label="periodes" />
             <Cijfer waarde={PERIODES.length * WEKEN_PER_PERIODE} label="lesweken" />
             <Cijfer waarde={botJaar} label="uur les op school" />
-            <Cijfer waarde={stageJaar} label={heeftStage ? 'uur stage' : 'uur begeleiding'} />
+            <Cijfer waarde={stageJaar} label="uur stage" />
           </div>
         </div>
 
@@ -138,7 +136,7 @@ export default function Jaaroverzicht({
         <div className="rail">
           {PERIODES.map((p, i) => {
             const week = botUrenPerWeek(p)
-            const stage = stageUrenPerWeek(p, heeftStage)
+            const stage = stageUrenPerWeek(p)
             const kans1 = p.examens.filter((e) => e.kans === 1).length
             const kans2 = p.examens.filter((e) => e.kans === 2).length
             const open = openTakenPerPeriode.get(p.nummer) ?? 0
@@ -152,7 +150,7 @@ export default function Jaaroverzicht({
                 className={`pk${isNu ? ' pk--nu' : ''}${isVoorbij ? ' pk--klaar' : ''}`}
                 onClick={() => onKiesPeriode(p.nummer)}
                 aria-label={`Periode ${p.nummer} openen. ${uren(week)} lesuren per week${
-                  stage > 0 ? `, ${uren(stage)} uur ${heeftStage ? 'stage' : 'begeleiding'}` : ''
+                  stage > 0 ? `, ${uren(stage)} uur stage` : ''
                 }.`}
               >
                 <div className="pk__kop">
@@ -170,9 +168,7 @@ export default function Jaaroverzicht({
                 </div>
                 <div className="pk__voet">
                   {stage > 0 && (
-                    <Merk soort={heeftStage ? 'stage' : 'geenstage'}>
-                      {uren(stage)}u {heeftStage ? 'stage' : 'begeleiding'}
-                    </Merk>
+                    <Merk soort="stage">{uren(stage)}u stage</Merk>
                   )}
                   {kans1 > 0 && <Merk soort="examen">{kans1} examen{kans1 > 1 ? 's' : ''}</Merk>}
                   {kans2 > 0 && <Merk soort="herkansing">{kans2} herkansing{kans2 > 1 ? 'en' : ''}</Merk>}

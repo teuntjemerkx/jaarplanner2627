@@ -13,7 +13,6 @@ import { Vaknaam } from './Basis'
 interface Props {
   datums: PeriodeDatums[] | null
   positie: HuidigePositie | null
-  heeftStage: boolean
   keuzedeelNaam: string
   onKiesPeriode: (nummer: number) => void
 }
@@ -25,7 +24,7 @@ function vlakStijl(urenPerWeek: number, kleur: string, max: number) {
   return { background: kleur, opacity: sterkte }
 }
 
-export default function Urenmatrix({ datums, positie, heeftStage, keuzedeelNaam, onKiesPeriode }: Props) {
+export default function Urenmatrix({ datums, positie, keuzedeelNaam, onKiesPeriode }: Props) {
   const rijen = bouwVakMatrix()
   const nuNummer = positie?.status === 'in' ? positie.periodeNummer : null
   const maxUren = Math.max(...rijen.flatMap((r) => r.perPeriode))
@@ -112,11 +111,11 @@ export default function Urenmatrix({ datums, positie, heeftStage, keuzedeelNaam,
               <th scope="row" className="vak">
                 <span className="vaknaam">
                   <span className="vaknaam__punt" style={{ background: 'var(--ri-oranje)' }} aria-hidden="true" />
-                  {heeftStage ? 'Stage (BPV)' : 'Begeleiding zonder stage'}
+                  Stage
                 </span>
               </th>
               {PERIODES.map((p) => {
-                const u = stageUrenPerWeek(p, heeftStage)
+                const u = stageUrenPerWeek(p)
                 return (
                   <td key={p.nummer} className={u === 0 ? 'nul' : undefined}>
                     {u === 0 ? (
@@ -129,7 +128,7 @@ export default function Urenmatrix({ datums, positie, heeftStage, keuzedeelNaam,
                   </td>
                 )
               })}
-              <td className="totaal">{uren(totaalStageUrenJaar(heeftStage))} u</td>
+              <td className="totaal">{uren(totaalStageUrenJaar())} u</td>
             </tr>
           </tbody>
         </table>

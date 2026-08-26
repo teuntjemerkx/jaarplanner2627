@@ -18,8 +18,6 @@ export interface Taak {
 export interface Instellingen {
   /** Startdatum (ISO yyyy-mm-dd) per periode, 8 stuks. Leeg = nog niet ingesteld. */
   periodeStarts: string[]
-  /** Loopt de student stage, of volgt hij/zij de route zonder stageplek? */
-  heeftStage: boolean
   /** Zelfgekozen keuzedeel. Blijft lokaal, wordt nergens naartoe gestuurd. */
   keuzedeelNaam: string
   naam: string

@@ -28,4 +28,4 @@
 export const LOGO_DATA_URI: string | null = null
 
 /** Verhouding breedte : hoogte van het logobestand. Nodig om te schalen. */
-export const LOGO_VERHOUDING = 1516 / 460
+export const LOGO_VERHOUDING = 3.296

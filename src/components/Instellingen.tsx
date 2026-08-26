@@ -179,7 +179,7 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
       </div>
 
       <div className="kaart" style={{ padding: 'clamp(18px, 2.6vw, 26px)', marginBottom: 18 }}>
-        <h3 style={{ fontSize: 'var(--stap-1)', marginBottom: 6 }}>Stage en keuzedeel</h3>
+        <h3 style={{ fontSize: 'var(--stap-1)', marginBottom: 6 }}>Je keuzedeel</h3>
         <div className="raster" style={{ marginTop: 12 }}>
           <div className="veld">
             <label htmlFor="kd">Welk keuzedeel doe je?</label>
@@ -192,30 +192,6 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
             />
             <span className="hint">
               Dit is alleen voor jezelf. Het blijft op je eigen laptop en gaat niet naar de opleiding.
-            </span>
-          </div>
-          <div className="veld">
-            <label htmlFor="stage-schakel">Loop je stage vanaf periode 4?</label>
-            <div className="schakel" id="stage-schakel">
-              <button
-                type="button"
-                className="schakel__optie"
-                aria-pressed={instellingen.heeftStage}
-                onClick={() => onZet({ heeftStage: true })}
-              >
-                Ja, ik loop stage
-              </button>
-              <button
-                type="button"
-                className="schakel__optie"
-                aria-pressed={!instellingen.heeftStage}
-                onClick={() => onZet({ heeftStage: false })}
-              >
-                Nog geen stageplek
-              </button>
-            </div>
-            <span className="hint">
-              Heb je nog geen stageplek? Dan krijg je 4 uur begeleiding per week in plaats van 16 uur stage.
             </span>
           </div>
         </div>

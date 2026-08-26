@@ -21,16 +21,16 @@ export function botUrenPerPeriode(periode: Periode): number {
   return rond(botUrenPerWeek(periode) * periode.weken)
 }
 
-export function stageUrenPerWeek(periode: Periode, heeftStage: boolean): number {
-  return heeftStage ? periode.stageUrenPerWeek : periode.zonderStageUrenPerWeek
+export function stageUrenPerWeek(periode: Periode): number {
+  return periode.stageUrenPerWeek
 }
 
-export function stageUrenPerPeriode(periode: Periode, heeftStage: boolean): number {
-  return rond(stageUrenPerWeek(periode, heeftStage) * periode.weken)
+export function stageUrenPerPeriode(periode: Periode): number {
+  return rond(stageUrenPerWeek(periode) * periode.weken)
 }
 
-export function totaalUrenPerWeek(periode: Periode, heeftStage: boolean): number {
-  return rond(botUrenPerWeek(periode) + stageUrenPerWeek(periode, heeftStage))
+export function totaalUrenPerWeek(periode: Periode): number {
+  return rond(botUrenPerWeek(periode) + stageUrenPerWeek(periode))
 }
 
 export function urenVoorVak(periode: Periode, vakId: VakId): number {
@@ -75,8 +75,8 @@ export function totaalBotUrenJaar(): number {
   return rond(PERIODES.reduce((som, p) => som + botUrenPerPeriode(p), 0))
 }
 
-export function totaalStageUrenJaar(heeftStage: boolean): number {
-  return rond(PERIODES.reduce((som, p) => som + stageUrenPerPeriode(p, heeftStage), 0))
+export function totaalStageUrenJaar(): number {
+  return rond(PERIODES.reduce((som, p) => som + stageUrenPerPeriode(p), 0))
 }
 
 export interface Controle {

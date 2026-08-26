@@ -63,7 +63,6 @@ Huidige stand: berekend 750 uur, bronbestand 750 uur. Dat sluit exact.
 - 8 periodes × 5 lesweken = **40 lesweken**
 - **750 uur** begeleide onderwijstijd (exclusief stage, net zoals de opleiding het rekent)
 - **400 uur** stage: 16 uur per week in periode 4 t/m 8
-- Zonder stageplek: **100 uur** begeleiding (4 uur per week, 2 × 2 uur)
 
 ---
 
@@ -82,13 +81,17 @@ in het studentenscherm; daar heet het "Je jaar op een rij".
 | **Jaaroverzicht** | De backbone: 8 periodekaarten met urenverdeling, examens, stage en je eigen open taken. Plus een "je bent hier"-blok en het jaartotaal per vak. |
 | **Urenmatrix** | Volledige tabel vak × periode met lesuren per week en het jaartotaal per vak. |
 | **Mijn planner** | Eigen taken met vak, periode, deadline, geschatte studie-uren en notitie. Filters op "nog te doen", "deze week" en "afgerond". |
-| **Instellingen** | Periodedatums, stage-schakelaar, eigen keuzedeel, back-up en wissen. |
+| **Instellingen** | Periodedatums, eigen keuzedeel, back-up en wissen. |
 
-### Twee routes: met en zonder stage
+### Stage
 
-De backbone kent vanaf periode 4 een tweede route voor studenten zonder stageplek
-(4 uur begeleiding in plaats van 16 uur stage). De schakelaar rechtsboven zet het hele
-dashboard om, inclusief alle totalen.
+Vanaf periode 4 loopt elke student 16 uur stage per week. Het dashboard gaat daarvan uit.
+
+De backbone kent daarnaast een tweede route voor studenten zonder stageplek: 4 uur
+begeleiding per week (2 x 2 uur). **Die route wordt bewust niet getoond**, omdat de
+verwachting is dat iedereen een stageplek heeft. Het getal staat wel vastgelegd in
+`src/data/curriculum.ts` als `BEGELEIDING_ZONDER_STAGEPLEK_PER_WEEK`, zodat de informatie
+uit het bronbestand niet verloren gaat.
 
 ### Keuzedelen
 
@@ -112,8 +115,16 @@ Het officiele logobestand zit niet in deze repository. Zet het er zo in:
 
 1. Vraag het logo op bij Marketing, Instroom en Communicatie, of pak het uit Docufiller.
    Een SVG met doorzichtige achtergrond werkt het beste.
-2. Maak er een data-URI van: `base64 -w0 logo.svg`
-3. Plak de uitkomst in `src/assets/logo.ts`, achter `data:image/svg+xml;base64,`.
+2. Draai dit commando:
+
+   ```bash
+   node scripts/logo.mjs pad/naar/logo.svg
+   npm run build
+   ```
+
+Het script zet het bestand om naar een data-URI, schrijft die in `src/assets/logo.ts` en
+leest de verhouding breedte : hoogte uit het bestand zelf. Weghalen kan met
+`node scripts/logo.mjs --wis`.
 
 Zolang daar `null` staat, toont de app het woordmerk als tekst. De app werkt dus altijd.
 

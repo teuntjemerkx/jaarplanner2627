@@ -16,7 +16,6 @@ import { Icoon, Merk, Stapelbalk, Vaknaam, periodeStapel } from './Basis'
 interface Props {
   nummer: number
   datums: PeriodeDatums[] | null
-  heeftStage: boolean
   keuzedeelNaam: string
   taken: Taak[]
   isNu: boolean
@@ -24,7 +23,7 @@ interface Props {
   onNavigeer: (nummer: number) => void
 }
 
-export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaam, taken, isNu, onSluit, onNavigeer }: Props) {
+export default function PeriodeDetail({ nummer, datums, keuzedeelNaam, taken, isNu, onSluit, onNavigeer }: Props) {
   const periode = periodeOpNummer(nummer)
   const paneel = useRef<HTMLDivElement>(null)
   const sluitKnop = useRef<HTMLButtonElement>(null)
@@ -48,8 +47,8 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
   const datum = datums?.find((d) => d.nummer === nummer)
   const week = botUrenPerWeek(periode)
   const totaal = botUrenPerPeriode(periode)
-  const stageWeek = stageUrenPerWeek(periode, heeftStage)
-  const stageTotaal = stageUrenPerPeriode(periode, heeftStage)
+  const stageWeek = stageUrenPerWeek(periode)
+  const stageTotaal = stageUrenPerPeriode(periode)
   const regulier = periode.examens.filter((e) => e.kans === 1)
   const herkansingen = periode.examens.filter((e) => e.kans === 2)
   const eigenTaken = taken.filter((t) => t.periodeNummer === nummer)
@@ -78,7 +77,7 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
               {datum ? `${formatLang(datum.start)} t/m ${formatLang(datum.eind)}` : `${periode.weken} lesweken`}
               {' · '}
               {uren(week)} uur les per week
-              {stageWeek > 0 && ` · ${uren(stageWeek)} uur ${heeftStage ? 'stage' : 'begeleiding'}`}
+              {stageWeek > 0 && ` · ${uren(stageWeek)} uur stage`}
             </p>
           </div>
           <button type="button" className="knop knop--stil" onClick={onSluit} ref={sluitKnop} aria-label="Sluit paneel">
@@ -92,8 +91,8 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
           {stageWeek > 0 && (
             <>
               {' '}
-              · plus {uren(stageTotaal)} uur {heeftStage ? 'stage' : 'begeleiding'} ={' '}
-              <strong>{uren(totaalUrenPerWeek(periode, heeftStage) * periode.weken)} uur totaal</strong>
+              · plus {uren(stageTotaal)} uur stage ={' '}
+              <strong>{uren(totaalUrenPerWeek(periode) * periode.weken)} uur totaal</strong>
             </>
           )}
         </p>
@@ -116,14 +115,12 @@ export default function PeriodeDetail({ nummer, datums, heeftStage, keuzedeelNaa
 
         {stageWeek > 0 && (
           <>
-            <h3>{heeftStage ? 'Je stage' : 'Nog geen stageplek'}</h3>
+            <h3>Je stage</h3>
             <div className="regel regel--stage">
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div className="regel__naam">{heeftStage ? 'Stage' : 'Begeleiding zonder stageplek'}</div>
+                <div className="regel__naam">Stage</div>
                 <div className="regel__uitleg">
-                  {heeftStage
-                    ? 'Deze periode loop je stage. Dat doe je naast je lessen op school.'
-                    : periode.zonderStageToelichting}
+                  Deze periode loop je stage. Dat doe je naast je lessen op school.
                 </div>
               </div>
               <div className="regel__uren">

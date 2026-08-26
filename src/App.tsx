@@ -58,26 +58,6 @@ export default function App() {
               <strong>Jaarplanner {OPLEIDING.naam}</strong>
               Niveau {OPLEIDING.niveau} · cohort {OPLEIDING.cohort} · leerjaar {OPLEIDING.leerjaar}
             </span>
-            <div className="kop__rechts">
-              <div className="schakel" role="group" aria-label="Loop je stage?">
-                <button
-                  type="button"
-                  className="schakel__optie"
-                  aria-pressed={data.instellingen.heeftStage}
-                  onClick={() => api.zetInstellingen({ heeftStage: true })}
-                >
-                  Met stage
-                </button>
-                <button
-                  type="button"
-                  className="schakel__optie"
-                  aria-pressed={!data.instellingen.heeftStage}
-                  onClick={() => api.zetInstellingen({ heeftStage: false })}
-                >
-                  Zonder stage
-                </button>
-              </div>
-            </div>
           </div>
           <nav className="nav" aria-label="Hoofdmenu">
             {TABBLADEN.map((t) => (
@@ -130,7 +110,6 @@ export default function App() {
           <Jaaroverzicht
             datums={datums}
             positie={positie}
-            heeftStage={data.instellingen.heeftStage}
             taken={data.taken}
             onKiesPeriode={kiesPeriode}
             onGaNaarInstellingen={() => setWeergave('instellingen')}
@@ -141,7 +120,6 @@ export default function App() {
           <Urenmatrix
             datums={datums}
             positie={positie}
-            heeftStage={data.instellingen.heeftStage}
             keuzedeelNaam={data.instellingen.keuzedeelNaam}
             onKiesPeriode={kiesPeriode}
           />
@@ -180,7 +158,6 @@ export default function App() {
         <PeriodeDetail
           nummer={openPeriode}
           datums={datums}
-          heeftStage={data.instellingen.heeftStage}
           keuzedeelNaam={data.instellingen.keuzedeelNaam}
           taken={data.taken}
           isNu={nuNummer === openPeriode}

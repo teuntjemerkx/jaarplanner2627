@@ -4,7 +4,6 @@ const SLEUTEL = 'rijnijssel.abs.jaarplanner.v1'
 
 export const STANDAARD_INSTELLINGEN: Instellingen = {
   periodeStarts: [],
-  heeftStage: true,
   keuzedeelNaam: '',
   naam: '',
 }

@@ -153,11 +153,8 @@ export interface Periode {
   weken: number
   vakken: PeriodeVak[]
   examens: Examen[]
-  /** Uren stage per week voor studenten MET stageplek. 0 = geen stage deze periode. */
+  /** Uren stage per week. 0 = in deze periode loop je nog geen stage. */
   stageUrenPerWeek: number
-  /** Uren begeleiding per week voor studenten ZONDER stageplek. */
-  zonderStageUrenPerWeek: number
-  zonderStageToelichting?: string
 }
 
 /** Elke periode telt 5 lesweken. 8 periodes x 5 weken = 40 lesweken. */
@@ -201,7 +198,14 @@ const BASIS_P4_P8: PeriodeVak[] = [
   { vakId: 'businessservices', urenPerWeek: 6 },
 ]
 
-const ZONDER_STAGE = 'Heb je nog geen stageplek? Dan krijg je 4 uur begeleiding per week. Dat is 2 keer 2 uur.'
+/**
+ * De backbone kent vanaf periode 4 ook een route voor studenten zonder
+ * stageplek: 4 uur begeleiding per week (2 x 2 uur) in plaats van 16 uur stage.
+ * Dit dashboard toont die route bewust niet, omdat het uitgangspunt is dat
+ * iedere student stage loopt. Het getal staat hier zodat de informatie uit het
+ * bronbestand niet verloren gaat.
+ */
+export const BEGELEIDING_ZONDER_STAGEPLEK_PER_WEEK = 4
 
 export const PERIODES: Periode[] = [
   {
@@ -210,7 +214,6 @@ export const PERIODES: Periode[] = [
     vakken: BASIS_P1_P2,
     examens: [],
     stageUrenPerWeek: 0,
-    zonderStageUrenPerWeek: 0,
   },
   {
     nummer: 2,
@@ -221,7 +224,6 @@ export const PERIODES: Periode[] = [
       { naam: 'CE Nederlands', soort: 'CE', kans: 1, vakId: 'nederlands' },
     ],
     stageUrenPerWeek: 0,
-    zonderStageUrenPerWeek: 0,
   },
   {
     nummer: 3,
@@ -233,7 +235,6 @@ export const PERIODES: Periode[] = [
       { naam: 'Engels spreken en gesprekken A1', soort: 'IE', kans: 1, vakId: 'engels' },
     ],
     stageUrenPerWeek: 0,
-    zonderStageUrenPerWeek: 0,
   },
   {
     nummer: 4,
@@ -245,8 +246,6 @@ export const PERIODES: Periode[] = [
       { naam: 'IE Nederlands Spreken 2F', soort: 'IE', kans: 1, vakId: 'nederlands' },
     ],
     stageUrenPerWeek: 16,
-    zonderStageUrenPerWeek: 4,
-    zonderStageToelichting: ZONDER_STAGE,
   },
   {
     nummer: 5,
@@ -259,8 +258,6 @@ export const PERIODES: Periode[] = [
       { naam: 'CE Nederlands', soort: 'CE', kans: 2, vakId: 'nederlands' },
     ],
     stageUrenPerWeek: 16,
-    zonderStageUrenPerWeek: 4,
-    zonderStageToelichting: ZONDER_STAGE,
   },
   {
     nummer: 6,
@@ -272,8 +269,6 @@ export const PERIODES: Periode[] = [
       { naam: 'IE Nederlands Schrijven 2F', soort: 'IE', kans: 1, vakId: 'nederlands' },
     ],
     stageUrenPerWeek: 16,
-    zonderStageUrenPerWeek: 4,
-    zonderStageToelichting: ZONDER_STAGE,
   },
   {
     nummer: 7,
@@ -286,8 +281,6 @@ export const PERIODES: Periode[] = [
       { naam: 'Nederlands spreken en gesprekken', soort: 'IE', kans: 2, vakId: 'nederlands' },
     ],
     stageUrenPerWeek: 16,
-    zonderStageUrenPerWeek: 4,
-    zonderStageToelichting: ZONDER_STAGE,
   },
   {
     nummer: 8,
@@ -295,8 +288,6 @@ export const PERIODES: Periode[] = [
     vakken: BASIS_P4_P8,
     examens: [],
     stageUrenPerWeek: 16,
-    zonderStageUrenPerWeek: 4,
-    zonderStageToelichting: ZONDER_STAGE,
   },
 ]
 
