@@ -49,9 +49,11 @@ export default function Instellingen({ data, kanOpslaan, onZet, onVervang }: Pro
       a.click()
       a.remove()
       setTimeout(() => URL.revokeObjectURL(url), 0)
-      setBericht('Back-up gedownload. Bewaar dit bestand ergens veilig.')
+      setBericht(
+        'Als je browser downloads toestaat, staat de back-up nu in je map Downloads. Gebeurt er niets? Gebruik dan “Kopieer naar klembord”.',
+      )
     } catch {
-      setFout('Downloaden lukt niet in dit venster. Gebruik hieronder de knop om je gegevens te kopiëren.')
+      setFout('Downloaden lukt niet in dit venster. Gebruik de knop “Kopieer naar klembord”.')
     }
   }
 
