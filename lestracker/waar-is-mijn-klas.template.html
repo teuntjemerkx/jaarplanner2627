@@ -198,6 +198,53 @@ body.bureaublad .blad{padding-left:clamp(16px,13vw,230px)}
 .uren{display:flex;justify-content:space-between;margin-top:6px;font-size:.68rem;color:var(--tekst-gedempt);font-variant-numeric:tabular-nums}
 .leeg{color:var(--tekst-gedempt);font-size:.86rem;padding:6px 0}
 
+/* --- bijwerken ---------------------------------------------------------- */
+.werkbalk{display:flex;align-items:center;gap:10px;margin-left:14px}
+body.bureaublad .werkbalk{display:none}
+.knop{
+  font:inherit;font-size:.82rem;font-weight:650;cursor:pointer;
+  padding:8px 15px;border-radius:999px;border:1px solid var(--rand-sterk);
+  background:var(--vlak);color:var(--tekst);
+}
+.knop:hover{background:var(--vlak-hoog);border-color:var(--accent)}
+.knop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.knop.hoofd{background:var(--accent);color:var(--canvas);border-color:transparent}
+.knop.hoofd:hover{background:#ff8c3d}
+.knop[disabled]{opacity:.5;cursor:default}
+.stand-bij{font-size:.74rem;color:var(--tekst-gedempt);font-variant-numeric:tabular-nums}
+.stand-bij.oud{color:var(--let-op)}
+
+.paneel{
+  position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
+  background:rgba(10,5,22,.72);padding:20px;
+}
+.paneel[hidden]{display:none}
+.paneel-kaart{
+  width:min(560px,100%);max-height:88vh;overflow-y:auto;
+  background:var(--vlak);border:1px solid var(--rand-sterk);border-radius:var(--r-xl);
+  padding:26px;box-shadow:var(--schaduw);
+}
+.paneel-kaart h2{margin:0 0 6px;font-size:1.25rem;font-weight:700;letter-spacing:-.015em}
+.paneel-kaart p{margin:0 0 18px;font-size:.86rem;line-height:1.6;color:var(--tekst-zacht)}
+.paneel-kaart label{display:block;font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--tekst-gedempt);font-weight:700;margin-bottom:7px}
+.paneel-kaart input[type=url]{
+  width:100%;font:inherit;font-size:.84rem;padding:10px 13px;border-radius:var(--r-s);
+  border:1px solid var(--rand);background:var(--canvas-diep);color:var(--tekst);
+}
+.paneel-kaart input[type=url]:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.rij{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.of{
+  margin:22px 0 14px;border-top:1px solid var(--rand);padding-top:18px;
+}
+.melding{
+  margin-top:16px;padding:12px 14px;border-radius:var(--r-s);font-size:.83rem;line-height:1.5;
+  background:var(--vlak-zacht);border:1px solid var(--rand);color:var(--tekst-zacht);
+}
+.melding.goed{border-color:var(--ok);color:var(--ok)}
+.melding.fout{border-color:var(--let-op);color:var(--let-op)}
+.melding[hidden]{display:none}
+
 /* --- voet --------------------------------------------------------------- */
 .voet{
   margin-top:16px;font-size:.72rem;line-height:1.55;color:var(--tekst-gedempt);
@@ -224,6 +271,10 @@ body.bureaublad .blad{padding-left:clamp(16px,13vw,230px)}
   <header class="kop">
     <div class="merk" id="merk"></div>
     <h1>Waar is mijn klas<b>lesstand per klas en vak</b></h1>
+    <div class="werkbalk">
+      <button type="button" class="knop" id="knop-bijwerken">Rooster bijwerken</button>
+      <span class="stand-bij" id="stand-bij"></span>
+    </div>
     <div class="klok">
       <div class="tijd" id="tijd">--:--</div>
       <div class="dag" id="datum">-</div>
@@ -244,6 +295,42 @@ body.bureaublad .blad{padding-left:clamp(16px,13vw,230px)}
   <p class="voet" id="voet"></p>
 </div>
 
+<div class="paneel" id="paneel" hidden>
+  <div class="paneel-kaart" role="dialog" aria-modal="true" aria-labelledby="paneel-titel">
+    <h2 id="paneel-titel">Rooster bijwerken</h2>
+    <p>De tracker leest je rooster en onthoudt elke week die hij ziet. Zo bouwt hij
+      zelf de geschiedenis op die de feed niet heeft. Doe dit eens per week, dan
+      klopt de stand ook na uitval of een gewijzigd rooster.</p>
+
+    <label for="feed-url">Adres van je roosterfeed</label>
+    <input type="url" id="feed-url" placeholder="https://rij.myx.nl/api/InternetCalendar/feed/..."
+      spellcheck="false" autocomplete="off">
+    <div class="rij">
+      <button type="button" class="knop hoofd" id="knop-ophalen">Ophalen</button>
+      <span class="stand-bij">Het adres blijft op deze computer, niet in het bestand.</span>
+    </div>
+
+    <div class="of">
+      <label for="ics-bestand">Lukt ophalen niet? Kies dan het bestand</label>
+      <input type="file" id="ics-bestand" accept=".ics,text/calendar">
+      <div class="rij">
+        <span class="stand-bij">Open de feed in je browser, sla hem op als .ics en kies hem hier.</span>
+      </div>
+    </div>
+
+    <div class="melding" id="melding" hidden></div>
+
+    <div class="rij" style="margin-top:22px">
+      <button type="button" class="knop hoofd" id="knop-bewaren">Bijgewerkte kopie bewaren</button>
+      <button type="button" class="knop" id="knop-sluiten">Sluiten</button>
+    </div>
+    <div class="rij">
+      <span class="stand-bij">Bewaren zet alles wat de tracker weet in een nieuw bestand.
+        Gebruik dat voor je bureaubladachtergrond.</span>
+    </div>
+  </div>
+</div>
+
 <script>
 "use strict";
 /* ===========================================================================
@@ -257,6 +344,10 @@ var CONFIG = {
   // met lessen; wat daarvoor lag telt niet mee.
   eersteLesdag: '2026-08-31',
   laatsteLesdag: '2027-07-16',
+
+  // Tot deze dag is het rooster echt gezien. Daarna rekent de tracker door met
+  // het weekrooster. Werk je bij met de knop, dan schuift dit vanzelf op.
+  roosterBekendTot: '2026-09-25',
 
   // Vakanties en vrije dagen van Rijn IJssel, studiejaar 2026-2027.
   vrij: [
@@ -280,7 +371,9 @@ var CONFIG = {
     'ABS-26D|Nederlands': 0,
     'ABS-26D|Rekenen': 0,
     'LIHS-26A|Rekenen': 0,
-    'BACS-26A|Slim met AI': 0,
+    // Teun heeft 26A twee keer gehad en 26B een keer. De extra les van 26A staat
+    // niet in het rooster dat ik kon inzien, vandaar deze plus een.
+    'BACS-26A|Slim met AI': 1,
     'BACS-26B|Slim met AI': 0
   }
 };
@@ -365,6 +458,51 @@ var UITZONDERINGEN = {
   ]
 };
 
+/* ===========================================================================
+   2c. ARCHIEF
+   ---------------------------------------------------------------------------
+   Elke keer dat je op "Rooster bijwerken" klikt, leest de tracker je rooster en
+   bewaart hij elke dag die hij ziet. Zo bouwt hij de geschiedenis op die de feed
+   zelf niet heeft: die levert maar een venster van ongeveer twee weken.
+
+   Het archief gaat voor op de uitzonderingen, en die gaan voor op het
+   weekrooster. Het blok hieronder wordt overschreven als je een bijgewerkte
+   kopie bewaart; raak de twee regels met ARCHIEF-BEGIN en ARCHIEF-EIND niet aan.
+   ========================================================================= */
+/* ARCHIEF-BEGIN */
+var ARCHIEF_INGEBAKKEN = {};
+/* ARCHIEF-EIND */
+
+var ARCHIEF_SLEUTEL = 'waar-is-mijn-klas/archief';
+var ARCHIEF_STAND_SLEUTEL = 'waar-is-mijn-klas/bijgewerkt';
+var FEED_SLEUTEL = 'waar-is-mijn-klas/feed';
+
+/* Opslag kan geblokkeerd zijn (privevenster, strenge instellingen). Dan werkt
+   alles gewoon door op wat er in het bestand staat. */
+function opslagLees(sleutel){
+  try { return window.localStorage.getItem(sleutel); } catch (e) { return null; }
+}
+function opslagSchrijf(sleutel, waarde){
+  try { window.localStorage.setItem(sleutel, waarde); return true; } catch (e) { return false; }
+}
+
+function leesArchief(){
+  var samen = {};
+  for (var d in ARCHIEF_INGEBAKKEN){
+    if (Object.prototype.hasOwnProperty.call(ARCHIEF_INGEBAKKEN, d)) samen[d] = ARCHIEF_INGEBAKKEN[d];
+  }
+  var rauw = opslagLees(ARCHIEF_SLEUTEL);
+  if (rauw){
+    try {
+      var extra = JSON.parse(rauw);
+      for (var e in extra){
+        if (Object.prototype.hasOwnProperty.call(extra, e)) samen[e] = extra[e];
+      }
+    } catch (fout) { /* onleesbaar archief negeren we, liever dan crashen */ }
+  }
+  return samen;
+}
+
 /* Kleur per vak. Alle kleuren halen minimaal 6,9:1 contrast op #1A1033. */
 var VAKKLEUR = {
   'Nederlands':        '#ff7a1a',
@@ -411,8 +549,10 @@ function vrijeDag(datum){
 function bouwLessen(){
   var lijst = [], eind = datumUit(CONFIG.laatsteLesdag);
   var loper = datumUit(CONFIG.eersteLesdag);
+  var archief = leesArchief();
   while (loper <= eind){
-    var afwijkend = UITZONDERINGEN[alsIso(loper)];
+    var dagsleutel = alsIso(loper);
+    var afwijkend = archief[dagsleutel] || UITZONDERINGEN[dagsleutel];
     var bron = null;
     if (afwijkend){
       bron = afwijkend;                 // deze dag is met de hand vastgelegd
@@ -441,8 +581,9 @@ function bouwLessen(){
 /* Hoeveelste lesweek van het studiejaar is het nu? */
 function lesweekNummer(nu){
   var loper = datumUit(CONFIG.eersteLesdag), weken = 0, laatsteMaandag = '';
+  var bekend = leesArchief();
   while (loper <= nu){
-    if (UITZONDERINGEN[alsIso(loper)] || !vrijeDag(loper)){
+    if (bekend[alsIso(loper)] || UITZONDERINGEN[alsIso(loper)] || !vrijeDag(loper)){
       var maandag = new Date(loper);
       maandag.setDate(maandag.getDate() - (maandag.getDay() - 1));
       var sleutel = alsIso(maandag);
@@ -752,6 +893,20 @@ function toonVoet(){
   d.appendChild(maakEl('b', null, 'Let op: '));
   d.appendChild(document.createTextNode('je agenda blijft leidend. Wijzigt het rooster, dan klopt de teller niet meer vanzelf.'));
   voet.appendChild(a); voet.appendChild(b); voet.appendChild(c); voet.appendChild(d);
+
+  // Een teller die doorrekent op een oud rooster is erger dan geen teller.
+  var stempel = opslagLees(ARCHIEF_STAND_SLEUTEL);
+  var tot = stempel ? new Date(stempel) : datumUit(CONFIG.roosterBekendTot);
+  var dagen = Math.floor((Date.now() - tot.getTime()) / 86400000);
+  if (dagen > 9){
+    var waarschuwing = maakEl('span');
+    waarschuwing.style.color = 'var(--let-op)';
+    waarschuwing.appendChild(maakEl('b', null, 'Rooster bijwerken. '));
+    waarschuwing.appendChild(document.createTextNode(
+      'Het is ' + dagen + ' dagen geleden. Vanaf dan telt de tracker door op het oude weekrooster.'));
+    waarschuwing.firstChild.style.color = 'var(--let-op)';
+    voet.appendChild(waarschuwing);
+  }
 }
 
 var LOGO = "__LOGO_DATA_URI__";
@@ -765,6 +920,229 @@ function toonMerk(){
   } else {
     merk.appendChild(maakEl('span', null, 'Rijn IJssel'));
   }
+}
+
+/* ===========================================================================
+   5. Je rooster inlezen
+   ---------------------------------------------------------------------------
+   Een agendabestand (.ics) bestaat uit blokken tussen BEGIN:VEVENT en END:VEVENT.
+   Regels die met een spatie beginnen horen bij de regel erboven.
+   ========================================================================= */
+
+/* Afspraken die wel in je rooster staan maar geen les van een vak zijn. */
+var GEEN_LES = ['Introductie', 'Kansenmakers', 'Summervibes', 'Teamoverleg', 'Studiedag', 'Vergadering'];
+
+function icsOntsnap(waarde){
+  return waarde.replace(/\\n/gi, ' ').replace(/\\,/g, ',')
+               .replace(/\;/g, ';').replace(/\\\\/g, '\\').trim();
+}
+
+function icsDatum(waarde){
+  var m = waarde.match(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?/);
+  if (!m) return null;
+  if (m[7]) return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]));
+  return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+}
+
+function leesIcs(tekst){
+  var los = tekst.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  var regels = [];
+  for (var i = 0; i < los.length; i++){
+    var teken = los[i].charAt(0);
+    if ((teken === ' ' || teken === '\t') && regels.length){
+      regels[regels.length - 1] += los[i].substring(1);
+    } else {
+      regels.push(los[i]);
+    }
+  }
+
+  var gevonden = [], bezig = null;
+  for (i = 0; i < regels.length; i++){
+    var r = regels[i];
+    if (r.indexOf('BEGIN:VEVENT') === 0){ bezig = {}; continue; }
+    if (r.indexOf('END:VEVENT') === 0){
+      if (bezig && bezig.start && bezig.eind) gevonden.push(bezig);
+      bezig = null;
+      continue;
+    }
+    if (!bezig) continue;
+    var dp = r.indexOf(':');
+    if (dp < 0) continue;
+    var veld = r.substring(0, dp).split(';')[0].toUpperCase();
+    var waarde = r.substring(dp + 1);
+    if (veld === 'SUMMARY') bezig.samenvatting = icsOntsnap(waarde);
+    else if (veld === 'LOCATION') bezig.lokaal = icsOntsnap(waarde);
+    else if (veld === 'DTSTART') bezig.start = icsDatum(waarde);
+    else if (veld === 'DTEND') bezig.eind = icsDatum(waarde);
+  }
+  return gevonden;
+}
+
+/* "LE_Business Services, EC-ZMCM-O-26-ABS-26C, MERTE" wordt
+   vak "Business Services" en klas "ABS-26C". */
+function ontleedAfspraak(afspraak){
+  var delen = (afspraak.samenvatting || '').split(',');
+  for (var i = 0; i < delen.length; i++) delen[i] = delen[i].trim();
+
+  var vak = (delen[0] || '').replace(/^LE_/, '').trim();
+  var klas = '';
+  for (i = 1; i < delen.length; i++){
+    var m = delen[i].match(/-([A-Z]{2,6})-(\d{2}[A-Z])$/);
+    if (m){ klas = m[1] + '-' + m[2]; break; }
+  }
+
+  var soort = 'les';
+  if (!klas) soort = 'overig';
+  for (i = 0; i < GEEN_LES.length; i++){
+    if (vak.toLowerCase().indexOf(GEEN_LES[i].toLowerCase()) === 0) soort = 'overig';
+  }
+  if (/^toets\b/i.test(vak)) soort = 'toets';
+
+  return {
+    van: tekstTijd(afspraak.start), tot: tekstTijd(afspraak.eind),
+    vak: vak, klas: klas, lokaal: afspraak.lokaal || null, soort: soort
+  };
+}
+
+/* Zet alles wat in het bestand staat in het archief. Ook dagen zonder lessen
+   binnen het bereik, anders zou een uitgevallen dag stilletjes blijven tellen. */
+function verwerkRooster(tekst){
+  var afspraken = leesIcs(tekst);
+  if (!afspraken.length) throw new Error('Geen afspraken gevonden in dit bestand.');
+
+  var perDag = {}, vroegste = null, laatste = null;
+  for (var i = 0; i < afspraken.length; i++){
+    var a = afspraken[i];
+    var dag = alsIso(a.start);
+    if (!perDag[dag]) perDag[dag] = [];
+    perDag[dag].push(ontleedAfspraak(a));
+    if (!vroegste || a.start < vroegste) vroegste = a.start;
+    if (!laatste || a.start > laatste) laatste = a.start;
+  }
+
+  var loper = new Date(vroegste.getFullYear(), vroegste.getMonth(), vroegste.getDate());
+  var stop = new Date(laatste.getFullYear(), laatste.getMonth(), laatste.getDate());
+  var dagen = 0;
+  while (loper <= stop){
+    var sleutel = alsIso(loper);
+    if (!perDag[sleutel] && loper.getDay() !== 0 && loper.getDay() !== 6) perDag[sleutel] = [];
+    loper.setDate(loper.getDate() + 1);
+  }
+  for (var d in perDag){
+    if (Object.prototype.hasOwnProperty.call(perDag, d)){
+      perDag[d].sort(function(x, y){ return x.van < y.van ? -1 : 1; });
+      dagen++;
+    }
+  }
+
+  var bestaand = {};
+  var rauw = opslagLees(ARCHIEF_SLEUTEL);
+  if (rauw){ try { bestaand = JSON.parse(rauw); } catch (fout) { bestaand = {}; } }
+  for (d in perDag){
+    if (Object.prototype.hasOwnProperty.call(perDag, d)) bestaand[d] = perDag[d];
+  }
+
+  var bewaard = opslagSchrijf(ARCHIEF_SLEUTEL, JSON.stringify(bestaand));
+  opslagSchrijf(ARCHIEF_STAND_SLEUTEL, new Date().toISOString());
+  ARCHIEF_INGEBAKKEN = bestaand;   // ook zonder opslag klopt dit scherm meteen
+
+  return {dagen: dagen, afspraken: afspraken.length, bewaard: bewaard};
+}
+
+/* ===========================================================================
+   6. De knoppen
+   ========================================================================= */
+function meldStatus(tekst, soort){
+  var melding = document.getElementById('melding');
+  melding.textContent = tekst;
+  melding.className = 'melding' + (soort ? ' ' + soort : '');
+  melding.hidden = !tekst;
+}
+
+function toonStandBij(){
+  var el = document.getElementById('stand-bij');
+  var stempel = opslagLees(ARCHIEF_STAND_SLEUTEL);
+  if (!stempel){ el.textContent = 'nog niet bijgewerkt'; el.className = 'stand-bij oud'; return; }
+  var toen = new Date(stempel);
+  var dagen = Math.floor((Date.now() - toen.getTime()) / 86400000);
+  var wanneer = dagen === 0 ? 'vandaag' : (dagen === 1 ? 'gisteren' : dagen + ' dagen geleden');
+  el.textContent = 'bijgewerkt ' + wanneer;
+  el.className = 'stand-bij' + (dagen > 9 ? ' oud' : '');
+}
+
+function naVerversen(uitkomst){
+  ALLE_LESSEN = bouwLessen();
+  ververs();
+  toonVoet();
+  toonStandBij();
+  meldStatus(uitkomst.afspraken + ' afspraken gelezen, ' + uitkomst.dagen + ' dagen bijgewerkt.' +
+    (uitkomst.bewaard ? '' : ' Let op: opslaan in deze browser lukte niet, dus dit geldt tot je de pagina sluit.'),
+    'goed');
+}
+
+function haalFeedOp(){
+  var veld = document.getElementById('feed-url');
+  var url = veld.value.trim();
+  if (!url){ meldStatus('Vul eerst het adres van je roosterfeed in.', 'fout'); return; }
+  opslagSchrijf(FEED_SLEUTEL, url);
+
+  var knop = document.getElementById('knop-ophalen');
+  knop.disabled = true;
+  meldStatus('Bezig met ophalen...');
+
+  fetch(url.replace(/^webcal:/i, 'https:'))
+    .then(function(antwoord){
+      if (!antwoord.ok) throw new Error('De server antwoordde met ' + antwoord.status + '.');
+      return antwoord.text();
+    })
+    .then(function(tekst){ naVerversen(verwerkRooster(tekst)); })
+    .catch(function(fout){
+      meldStatus('Ophalen lukte niet: ' + fout.message +
+        ' Dit gebeurt vaak omdat myx een pagina op je eigen computer geen toestemming geeft. ' +
+        'Open het adres dan in een tabblad, sla de pagina op als .ics en kies het bestand hieronder.', 'fout');
+    })
+    .then(function(){ knop.disabled = false; });
+}
+
+function leesBestand(invoer){
+  var bestand = invoer.files && invoer.files[0];
+  if (!bestand) return;
+  var lezer = new FileReader();
+  lezer.onload = function(){
+    try { naVerversen(verwerkRooster(String(lezer.result))); }
+    catch (fout){ meldStatus('Dit bestand kon ik niet lezen: ' + fout.message, 'fout'); }
+  };
+  lezer.onerror = function(){ meldStatus('Het bestand kon niet geopend worden.', 'fout'); };
+  lezer.readAsText(bestand);
+}
+
+/* Bewaart een kopie van dit bestand met alles wat de tracker nu weet erin.
+   Handig voor je bureaubladachtergrond, die zijn eigen opslag heeft. */
+function bewaarKopie(){
+  var leeg = ['volgende', 'kaarten', 'dagvak', 'voet', 'merk'];
+  for (var i = 0; i < leeg.length; i++) document.getElementById(leeg[i]).textContent = '';
+  document.getElementById('paneel').setAttribute('hidden', '');
+  document.getElementById('feed-url').setAttribute('value', '');
+  document.body.classList.remove('bureaublad');
+
+  var archief = JSON.stringify(leesArchief(), null, 1).replace(/</g, '\\u003c');
+  var html = '<!doctype html>\n' + document.documentElement.outerHTML;
+  html = html.replace(/\/\* ARCHIEF-BEGIN \*\/[\s\S]*?\/\* ARCHIEF-EIND \*\//,
+    '/* ARCHIEF-BEGIN */\nvar ARCHIEF_INGEBAKKEN = ' + archief + ';\n/* ARCHIEF-EIND */');
+
+  var blob = new Blob([html], {type: 'text/html'});
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'waar-is-mijn-klas.html';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(function(){ URL.revokeObjectURL(link.href); }, 1000);
+
+  toonMerk();
+  toonVoet();
+  ververs();
+  meldStatus('Bewaard. Zet dit bestand over het oude heen en herlaad je achtergrond.', 'goed');
 }
 
 var ALLE_LESSEN = bouwLessen();
@@ -785,6 +1163,49 @@ toonMerk();
 toonVoet();
 ververs();
 setInterval(ververs, 30000);
+
+var paneel = document.getElementById('paneel');
+document.getElementById('knop-bijwerken').addEventListener('click', function(){
+  document.getElementById('feed-url').value = opslagLees(FEED_SLEUTEL) || '';
+  meldStatus('');
+  paneel.hidden = false;
+  document.getElementById('feed-url').focus();
+});
+document.getElementById('knop-sluiten').addEventListener('click', function(){ paneel.hidden = true; });
+paneel.addEventListener('click', function(gebeurtenis){
+  if (gebeurtenis.target === paneel) paneel.hidden = true;
+});
+document.addEventListener('keydown', function(gebeurtenis){
+  if (gebeurtenis.key === 'Escape' && !paneel.hidden) paneel.hidden = true;
+});
+document.getElementById('knop-ophalen').addEventListener('click', haalFeedOp);
+document.getElementById('knop-bewaren').addEventListener('click', bewaarKopie);
+document.getElementById('ics-bestand').addEventListener('change', function(){ leesBestand(this); });
+toonStandBij();
+
+/* Is het adres van je feed eenmaal ingevuld, dan probeert de tracker elke zes
+   uur zelf bij te werken. Lukt dat niet, dan gebeurt er niets zichtbaars: je
+   houdt gewoon de laatste stand. Zo blijft een bureaubladachtergrond bij zonder
+   dat je er naar om hoeft te kijken. */
+function stilBijwerken(){
+  var url = opslagLees(FEED_SLEUTEL);
+  if (!url || !window.fetch) return;
+  fetch(url.replace(/^webcal:/i, 'https:'))
+    .then(function(antwoord){
+      if (!antwoord.ok) throw new Error('niet ok');
+      return antwoord.text();
+    })
+    .then(function(tekst){
+      verwerkRooster(tekst);
+      ALLE_LESSEN = bouwLessen();
+      ververs();
+      toonVoet();
+      toonStandBij();
+    })
+    .catch(function(){ /* stil, dit is geen moment om de gebruiker lastig te vallen */ });
+}
+setTimeout(stilBijwerken, 8000);
+setInterval(stilBijwerken, 6 * 60 * 60 * 1000);
 </script>
 </body>
 </html>
