@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waar is mijn klas</title>
+<style>
+/* ===========================================================================
+   WAAR IS MIJN KLAS - lestracker voor Teun Merkx (MERTE), Rijn IJssel
+   ---------------------------------------------------------------------------
+   Kleuren komen 1-op-1 uit het huisstijlhandboek. De contrastwaarden in het
+   commentaar zijn berekend tegen de canvaskleur #1A1033.
+
+   Dit is bewust een donker ontwerp met een vaste look: het bestand is gemaakt
+   om als bureaubladachtergrond te draaien, waar de themakeuze van een browser
+   geen rol speelt. Alle kleuren staan daarom expliciet in de tokens hieronder.
+   ========================================================================= */
+:root{
+  --ri-oranje:#f86800;
+  --ri-violet:#610fca;
+  --ri-donkerpaars:#520dab;
+  --ri-lichtpaars:#d7c3f2;
+  --ri-blauw:#209fea;
+  --ri-groen:#5dd9c1;
+
+  --canvas:#1a1033;
+  --canvas-diep:#120a24;
+  --vlak:#251746;
+  --vlak-hoog:#2f1d59;
+  --vlak-zacht:rgba(215,195,242,.07);
+  --rand:rgba(215,195,242,.16);
+  --rand-sterk:rgba(215,195,242,.32);
+
+  --tekst:#eeeefd;          /* 15,68:1 */
+  --tekst-zacht:#d7c3f2;    /* 11,13:1 */
+  --tekst-gedempt:#b9a7de;  /*  8,27:1 */
+
+  --accent:#ff7a1a;         /*  6,91:1 */
+  --ok:#5dd9c1;             /* 10,43:1 */
+  --let-op:#ffc44d;         /* 11,37:1 */
+  --info:#7be0ff;           /* 11,96:1 */
+
+  --font:'Maison Neue','Maison',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --r-s:10px; --r-m:16px; --r-l:22px; --r-xl:30px;
+  --schaduw:0 18px 40px -22px rgba(0,0,0,.85);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--font);
+  background:var(--canvas);
+  color:var(--tekst);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* Rustige gloed achter de pagina. Traag genoeg om de hele dag naar te kijken. */
+.gloed{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.gloed::before,.gloed::after{
+  content:"";position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;
+}
+.gloed::before{
+  width:60vw;height:60vw;left:-14vw;top:-26vw;
+  background:radial-gradient(circle,rgba(97,15,202,.75),rgba(97,15,202,0) 70%);
+  animation:zweef1 54s ease-in-out infinite alternate;
+}
+.gloed::after{
+  width:46vw;height:46vw;right:-12vw;bottom:-22vw;
+  background:radial-gradient(circle,rgba(248,104,0,.38),rgba(248,104,0,0) 70%);
+  animation:zweef2 68s ease-in-out infinite alternate;
+}
+@keyframes zweef1{from{transform:translate3d(0,0,0)}to{transform:translate3d(6vw,5vh,0)}}
+@keyframes zweef2{from{transform:translate3d(0,0,0)}to{transform:translate3d(-5vw,-4vh,0)}}
+
+.blad{position:relative;z-index:1;padding:26px clamp(16px,2.4vw,38px) 22px;max-width:2100px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+/* Bureaubladmodus: laat links ruimte vrij voor de pictogrammen op het bureaublad.
+   Zet ?bureaublad achter de bestandsnaam om dit aan te zetten. */
+body.bureaublad .blad{padding-left:clamp(16px,13vw,230px)}
+
+/* --- kop ---------------------------------------------------------------- */
+.kop{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+.merk{
+  display:flex;align-items:center;background:#fff;border-radius:12px;
+  padding:9px 13px;box-shadow:var(--schaduw);flex:none;
+}
+.merk img{display:block;height:32px;width:calc(32px * 3.242)}
+.merk span{color:#610fca;font-weight:700;font-size:15px;letter-spacing:.01em}
+.kop h1{
+  font-size:clamp(1.1rem,1.5vw,1.5rem);font-weight:650;margin:0;letter-spacing:-.01em;
+  color:var(--tekst);
+}
+.kop h1 b{display:block;font-size:.7em;font-weight:500;color:var(--tekst-gedempt);letter-spacing:.02em}
+.klok{margin-left:auto;text-align:right;line-height:1.15}
+.klok .tijd{font-size:clamp(1.6rem,2.6vw,2.5rem);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.klok .dag{font-size:.86rem;color:var(--tekst-zacht);text-transform:lowercase}
+.klok .week{
+  display:inline-block;margin-top:5px;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--canvas);background:var(--accent);border-radius:999px;padding:3px 11px;font-weight:700;
+}
+
+/* --- hoofdraster -------------------------------------------------------- */
+.raster{display:grid;grid-template-columns:minmax(300px,24%) 1fr;gap:clamp(14px,1.4vw,22px);align-items:start;flex:1 0 auto}
+@media (max-width:1100px){.raster{grid-template-columns:1fr}}
+
+/* --- paneel: de eerstvolgende les -------------------------------------- */
+.volgende{
+  position:relative;border-radius:var(--r-xl);padding:26px 24px 24px;
+  background:linear-gradient(160deg,var(--vlak-hoog),var(--vlak) 62%,var(--canvas-diep));
+  border:1px solid var(--rand);box-shadow:var(--schaduw);overflow:hidden;
+}
+.volgende::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--streep,var(--accent));
+}
+.volgende .eyebrow{
+  font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tekst-gedempt);
+  font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;
+}
+.stip{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+.stip.leeft{animation:pols 2.6s ease-in-out infinite}
+@keyframes pols{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+
+.volgende .klas{font-size:clamp(1.9rem,3vw,2.9rem);font-weight:750;letter-spacing:-.025em;line-height:1.02}
+.volgende .vak{font-size:clamp(1rem,1.3vw,1.22rem);color:var(--streep,var(--accent));font-weight:650;margin-top:4px}
+.lesbal{
+  margin:20px 0 16px;padding:16px 18px;border-radius:var(--r-l);
+  background:rgba(0,0,0,.26);border:1px solid var(--rand);
+}
+.lesbal .label{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tekst-gedempt);font-weight:700}
+.lesbal .nr{
+  font-size:clamp(3rem,5.4vw,4.6rem);font-weight:800;line-height:.95;letter-spacing:-.045em;
+  font-variant-numeric:tabular-nums;color:var(--tekst);margin-top:2px;
+}
+.lesbal .nr small{font-size:.3em;font-weight:600;letter-spacing:.02em;color:var(--tekst-gedempt);margin-left:8px;vertical-align:.55em}
+.wanneer{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  font-size:.83rem;padding:6px 12px;border-radius:999px;background:var(--vlak-zacht);
+  border:1px solid var(--rand);color:var(--tekst-zacht);font-variant-numeric:tabular-nums;
+}
+.chip.sterk{background:var(--accent);color:var(--canvas);border-color:transparent;font-weight:700}
+
+/* --- klaskaarten -------------------------------------------------------- */
+.kaarten{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:clamp(12px,1.1vw,16px)}
+.kaart{
+  position:relative;border-radius:var(--r-l);padding:15px 16px 14px;
+  background:var(--vlak);border:1px solid var(--rand);
+  display:flex;flex-direction:column;gap:11px;
+}
+.kaart.aanbeurt{border-color:var(--streep);box-shadow:0 0 0 1px var(--streep),0 0 26px -8px var(--streep)}
+.kaart .titel{display:flex;align-items:baseline;gap:8px;min-width:0}
+.kaart .klasnaam{font-size:1.02rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.kaart .vaknaam{
+  font-size:.78rem;color:var(--streep);font-weight:650;letter-spacing:.02em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.cijfers{display:flex;align-items:flex-end;gap:14px}
+.cijfer .k{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--tekst-gedempt);font-weight:700}
+.cijfer .v{font-size:2.1rem;font-weight:800;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.cijfer .v.dof{font-size:1.25rem;font-weight:600;color:var(--tekst-gedempt)}
+.cijfer.pijl .v{color:var(--streep)}
+.balk{height:5px;border-radius:999px;background:rgba(0,0,0,.32);overflow:hidden}
+.balk i{display:block;height:100%;border-radius:999px;background:var(--streep);opacity:.85}
+.vergelijk{font-size:.78rem;font-weight:650;letter-spacing:.005em}
+.vergelijk.achter{color:var(--let-op)}
+.vergelijk.gelijk{color:var(--ok)}
+.vergelijk.neutraal{color:var(--tekst-gedempt);font-weight:500}
+.lesbal .vergelijk{margin-top:10px;font-size:.88rem}
+.kaart .regel{font-size:.8rem;color:var(--tekst-zacht);font-variant-numeric:tabular-nums}
+.kaart .regel em{font-style:normal;color:var(--tekst-gedempt)}
+.nu-badge{
+  position:absolute;top:-9px;right:12px;font-size:.66rem;font-weight:800;letter-spacing:.1em;
+  text-transform:uppercase;background:var(--accent);color:var(--canvas);padding:3px 9px;border-radius:999px;
+}
+
+/* --- dagstrook ---------------------------------------------------------- */
+.dag{
+  margin-top:clamp(14px,1.4vw,20px);border-radius:var(--r-l);padding:16px 18px 14px;
+  background:var(--vlak-zacht);border:1px solid var(--rand);
+}
+.dag h2{
+  font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tekst-gedempt);
+  font-weight:700;margin:0 0 13px;
+}
+.dag h2 em{font-style:normal;color:var(--tekst-zacht);text-transform:none;letter-spacing:0;font-weight:500;margin-left:8px}
+.tijdlijn{position:relative;height:46px;border-radius:var(--r-s);background:rgba(0,0,0,.26);overflow:hidden}
+.blok{
+  position:absolute;top:0;bottom:0;border-radius:8px;padding:6px 9px;overflow:hidden;
+  background:var(--streep);color:var(--canvas);border:1px solid rgba(0,0,0,.18);
+}
+.blok.overleg{background:var(--vlak-hoog);color:var(--tekst-zacht);border-color:var(--rand-sterk)}
+.blok .b1{font-size:.76rem;font-weight:750;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blok .b2{font-size:.68rem;opacity:.82;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nulijn{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tekst);box-shadow:0 0 10px rgba(238,238,253,.9)}
+.nulijn::before{
+  content:"";position:absolute;top:0;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--tekst);
+}
+.uren{display:flex;justify-content:space-between;margin-top:6px;font-size:.68rem;color:var(--tekst-gedempt);font-variant-numeric:tabular-nums}
+.leeg{color:var(--tekst-gedempt);font-size:.86rem;padding:6px 0}
+
+/* --- voet --------------------------------------------------------------- */
+.voet{
+  margin-top:16px;font-size:.72rem;line-height:1.55;color:var(--tekst-gedempt);
+  display:flex;flex-wrap:wrap;gap:6px 22px;
+}
+.voet b{color:var(--tekst-zacht);font-weight:600}
+
+@media (max-width:520px){
+  .blad{padding:18px 16px 20px}
+  body.bureaublad .blad{padding-left:16px}
+  .kop{gap:12px}
+  .klok{margin-left:0;text-align:left;width:100%}
+  .kaarten{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important}
+}
+</style>
+</head>
+<body>
+<div class="gloed" aria-hidden="true"></div>
+
+<div class="blad">
+  <header class="kop">
+    <div class="merk" id="merk"></div>
+    <h1>Waar is mijn klas<b>lesstand per klas en vak</b></h1>
+    <div class="klok">
+      <div class="tijd" id="tijd">--:--</div>
+      <div class="dag" id="datum">-</div>
+      <div class="week" id="lesweek">-</div>
+    </div>
+  </header>
+
+  <div class="raster">
+    <section class="volgende" id="volgende" aria-live="polite"></section>
+    <section class="kaarten" id="kaarten"></section>
+  </div>
+
+  <section class="dag">
+    <h2 id="dagtitel">Vandaag</h2>
+    <div id="dagvak"></div>
+  </section>
+
+  <p class="voet" id="voet"></p>
+</div>
+
+<script>
+"use strict";
+/* ===========================================================================
+   1. INSTELLINGEN - dit is het enige blok dat je zelf hoeft aan te passen
+   ---------------------------------------------------------------------------
+   Klopt een stand niet? Zet dan een correctie bij die klas. Voorbeeld: als een
+   les is uitgevallen en de teller een te hoog getal laat zien, zet je -1.
+   ========================================================================= */
+var CONFIG = {
+  // Eerste lesdag van het studiejaar. Vanaf deze dag telt de tracker mee.
+  eersteLesdag: '2026-08-24',
+  laatsteLesdag: '2027-07-16',
+
+  // Vakanties en vrije dagen van Rijn IJssel, studiejaar 2026-2027.
+  vrij: [
+    ['2026-10-19','2026-10-23','herfstvakantie'],
+    ['2026-12-21','2027-01-01','kerstvakantie'],
+    ['2027-02-08','2027-02-12','voorjaarsvakantie'],
+    ['2027-03-26','2027-03-26','Goede Vrijdag'],
+    ['2027-03-29','2027-03-29','tweede paasdag'],
+    ['2027-04-26','2027-05-07','meivakantie'],
+    ['2027-05-17','2027-05-17','tweede pinksterdag']
+  ],
+
+  // Handmatige correctie op de teller, per 'KLAS|VAK'. Standaard 0.
+  correcties: {
+    'ABS-26A|Nederlands': 0,
+    'ABS-26B|Nederlands': 0,
+    'ABS-26C|Nederlands': 0,
+    'ABS-26C|LBC': 0,
+    'ABS-26C|Business Services': 0,
+    'ABS-26C|Rekenen': 0,
+    'ABS-26D|Nederlands': 0,
+    'ABS-26D|Rekenen': 0,
+    'LIHS-26A|Rekenen': 0,
+    'BACS-26A|Slim met AI': 0,
+    'BACS-26B|Slim met AI': 0
+  }
+};
+
+/* ===========================================================================
+   2. HET WEEKROOSTER
+   ---------------------------------------------------------------------------
+   Overgenomen uit de agenda "Mijn rooster" (de myx-feed), weken van 14 en 21
+   september 2026. Beide weken waren gelijk, dus dit is het vaste weekpatroon.
+   dag: 1 = maandag ... 5 = vrijdag. Staat er null bij lokaal, dan wisselde het
+   lokaal per week; kijk dan in je agenda.
+   ========================================================================= */
+var WEEKROOSTER = [
+  // maandag
+  {dag:1, van:'09:30', tot:'10:30', vak:'Nederlands',        klas:'ABS-26B',  lokaal:'MID/3.35'},
+  {dag:1, van:'10:30', tot:'11:30', vak:'Rekenen',           klas:'LIHS-26A', lokaal:'MID/3.19'},
+  {dag:1, van:'11:30', tot:'12:30', vak:'Slim met AI',       klas:'BACS-26A', lokaal:'MID/4.09'},
+  {dag:1, van:'13:30', tot:'15:30', vak:'Business Services', klas:'ABS-26C',  lokaal:'MID/3.18'},
+  {dag:1, van:'15:30', tot:'16:30', vak:'LBC',               klas:'ABS-26C',  lokaal:'MID/3.04'},
+  // dinsdag
+  {dag:2, van:'08:30', tot:'10:00', soort:'overleg', vak:'Teamoverleg ZMCM', klas:'', lokaal:'MID/3.34'},
+  {dag:2, van:'10:00', tot:'12:00', vak:'Business Services', klas:'ABS-26C',  lokaal:'MID/3.30'},
+  {dag:2, van:'12:30', tot:'13:30', vak:'Nederlands',        klas:'ABS-26B',  lokaal:'MID/2.15'},
+  {dag:2, van:'13:30', tot:'14:30', vak:'Rekenen',           klas:'ABS-26D',  lokaal:'MID/4.17'},
+  {dag:2, van:'14:30', tot:'15:30', vak:'Rekenen',           klas:'LIHS-26A', lokaal:'MID/3.19'},
+  // woensdag
+  {dag:3, van:'08:30', tot:'09:30', vak:'Nederlands',        klas:'ABS-26C',  lokaal:null},
+  {dag:3, van:'10:30', tot:'11:30', vak:'Nederlands',        klas:'ABS-26D',  lokaal:null},
+  {dag:3, van:'12:00', tot:'13:00', vak:'Nederlands',        klas:'ABS-26A',  lokaal:'MID/3.26'},
+  // donderdag
+  {dag:4, van:'08:30', tot:'09:30', vak:'Nederlands',        klas:'ABS-26C',  lokaal:'MID/4.14'},
+  {dag:4, van:'09:30', tot:'10:30', vak:'LBC',               klas:'ABS-26C',  lokaal:'MID/2.05'},
+  {dag:4, van:'12:00', tot:'13:00', vak:'Nederlands',        klas:'ABS-26A',  lokaal:'MID/3.26'},
+  {dag:4, van:'13:00', tot:'14:00', vak:'Slim met AI',       klas:'BACS-26B', lokaal:null, tijdWisselt:true},
+  // vrijdag
+  {dag:5, van:'08:30', tot:'09:30', vak:'LBC',               klas:'ABS-26C',  lokaal:'MID/4.14'},
+  {dag:5, van:'09:30', tot:'11:30', vak:'Business Services', klas:'ABS-26C',  lokaal:'MID/4.14'},
+  {dag:5, van:'12:00', tot:'13:00', vak:'Rekenen',           klas:'ABS-26C',  lokaal:'MID/3.16'},
+  {dag:5, van:'13:00', tot:'14:00', vak:'Nederlands',        klas:'ABS-26D',  lokaal:'MID/4.17'}
+];
+
+/* Kleur per vak. Alle kleuren halen minimaal 6,9:1 contrast op #1A1033. */
+var VAKKLEUR = {
+  'Nederlands':        '#ff7a1a',
+  'Rekenen':           '#209fea',
+  'LBC':               '#5dd9c1',
+  'Business Services': '#d7c3f2',
+  'Slim met AI':       '#ffc44d',
+  'Keuzedeel AI':      '#7be0ff'
+};
+var KLEUR_ONBEKEND = '#b9a7de';
+function kleurVan(vak){ return VAKKLEUR[vak] || KLEUR_ONBEKEND; }
+
+/* ===========================================================================
+   3. Rekenwerk
+   ========================================================================= */
+var DAGNAAM = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+var DAGKORT = ['zo','ma','di','wo','do','vr','za'];
+var MAANDKORT = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+
+function datumUit(tekst){
+  var d = tekst.split('-');
+  return new Date(+d[0], +d[1] - 1, +d[2]);
+}
+function alsIso(datum){
+  var m = datum.getMonth() + 1, d = datum.getDate();
+  return datum.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+}
+function metTijd(datum, hhmm){
+  var t = hhmm.split(':');
+  return new Date(datum.getFullYear(), datum.getMonth(), datum.getDate(), +t[0], +t[1], 0, 0);
+}
+function vrijeDag(datum){
+  var wd = datum.getDay();
+  if (wd === 0 || wd === 6) return 'weekend';
+  var iso = alsIso(datum);
+  if (iso < CONFIG.eersteLesdag || iso > CONFIG.laatsteLesdag) return 'buiten het studiejaar';
+  for (var i = 0; i < CONFIG.vrij.length; i++){
+    if (iso >= CONFIG.vrij[i][0] && iso <= CONFIG.vrij[i][1]) return CONFIG.vrij[i][2];
+  }
+  return null;
+}
+
+/* Alle lesmomenten van het hele studiejaar, op volgorde van tijd. */
+function bouwLessen(){
+  var lijst = [], eind = datumUit(CONFIG.laatsteLesdag);
+  var loper = datumUit(CONFIG.eersteLesdag);
+  while (loper <= eind){
+    if (!vrijeDag(loper)){
+      for (var i = 0; i < WEEKROOSTER.length; i++){
+        var r = WEEKROOSTER[i];
+        if (r.dag !== loper.getDay()) continue;
+        lijst.push({
+          start: metTijd(loper, r.van), eindtijd: metTijd(loper, r.tot),
+          vak: r.vak, klas: r.klas, lokaal: r.lokaal,
+          soort: r.soort || 'les', tijdWisselt: !!r.tijdWisselt
+        });
+      }
+    }
+    loper.setDate(loper.getDate() + 1);
+  }
+  lijst.sort(function(a,b){ return a.start - b.start; });
+  return lijst;
+}
+
+/* Hoeveelste lesweek van het studiejaar is het nu? */
+function lesweekNummer(nu){
+  var loper = datumUit(CONFIG.eersteLesdag), weken = 0, laatsteMaandag = '';
+  while (loper <= nu){
+    if (!vrijeDag(loper)){
+      var maandag = new Date(loper);
+      maandag.setDate(maandag.getDate() - (maandag.getDay() - 1));
+      var sleutel = alsIso(maandag);
+      if (sleutel !== laatsteMaandag){ laatsteMaandag = sleutel; weken++; }
+    }
+    loper.setDate(loper.getDate() + 1);
+  }
+  return weken;
+}
+
+/* Groepeer alle lessen per klas en vak, en bepaal de stand. */
+function bouwStanden(lessen, nu){
+  var perGroep = {}, volgorde = [];
+  for (var i = 0; i < lessen.length; i++){
+    var l = lessen[i];
+    if (l.soort !== 'les') continue;
+    var sleutel = l.klas + '|' + l.vak;
+    if (!perGroep[sleutel]){ perGroep[sleutel] = []; volgorde.push(sleutel); }
+    perGroep[sleutel].push(l);
+  }
+  return volgorde.map(function(sleutel){
+    var reeks = perGroep[sleutel];
+    var correctie = CONFIG.correcties[sleutel] || 0;
+    var afgerond = 0, bezig = null, volgende = null;
+    for (var i = 0; i < reeks.length; i++){
+      var l = reeks[i];
+      if (l.eindtijd <= nu) afgerond++;
+      else if (l.start <= nu) bezig = l;
+      else if (!volgende) volgende = l;
+    }
+    var gehad = afgerond + correctie;
+    var perWeek = 0;
+    for (var w = 0; w < WEEKROOSTER.length; w++){
+      if (WEEKROOSTER[w].klas === reeks[0].klas && WEEKROOSTER[w].vak === reeks[0].vak) perWeek++;
+    }
+    return {
+      sleutel: sleutel, klas: reeks[0].klas, vak: reeks[0].vak,
+      gehad: gehad, perWeek: perWeek,
+      bezig: bezig, bezigNr: bezig ? gehad + 1 : null,
+      volgende: volgende, volgendeNr: gehad + (bezig ? 2 : 1),
+      totaal: reeks.length + correctie
+    };
+  });
+}
+
+/* Vergelijk alleen klassen die bij elkaar horen: zelfde opleiding, zelfde vak
+   en evenveel lessen per week. Anders zegt "een les achter" niets zinnigs.
+   Rekenen bij LIHS 26A (twee keer per week) is dus geen maatstaf voor rekenen
+   bij ABS 26C (een keer per week). */
+function koppelGroepen(standen){
+  var groepen = {};
+  standen.forEach(function(s){
+    var sleutel = s.klas.split('-')[0] + '|' + s.vak + '|' + s.perWeek;
+    if (!groepen[sleutel]) groepen[sleutel] = [];
+    groepen[sleutel].push(s);
+  });
+  standen.forEach(function(s){
+    var groep = groepen[s.klas.split('-')[0] + '|' + s.vak + '|' + s.perWeek];
+    var hoogste = 0;
+    groep.forEach(function(x){ if (x.gehad > hoogste) hoogste = x.gehad; });
+    s.groep = groep;
+    s.hoogste = hoogste;
+    s.achter = hoogste - s.gehad;
+  });
+  return standen;
+}
+
+function klasKort(stand){ return stand.klas.split('-')[1] || stand.klas; }
+function namenVan(lijst){ return lijst.map(klasKort).sort().join(', '); }
+
+/* Een korte, ware zin per kaart. */
+function vergelijkTekst(s){
+  if (s.groep.length < 2){
+    return {klasse:'neutraal', tekst: s.perWeek + (s.perWeek === 1 ? ' les' : ' lessen') + ' per week'};
+  }
+  if (s.achter > 0){
+    var koplopers = s.groep.filter(function(x){ return x.gehad === s.hoogste; });
+    return {klasse:'achter', tekst: s.achter + (s.achter === 1 ? ' les' : ' lessen') + ' achter op ' + namenVan(koplopers)};
+  }
+  var achterblijvers = s.groep.filter(function(x){ return x.gehad < s.hoogste; });
+  if (achterblijvers.length){
+    return {klasse:'gelijk', tekst:'voorop, ' + namenVan(achterblijvers) + ' loopt achter'};
+  }
+  return {klasse:'gelijk', tekst:'gelijk met ' + namenVan(s.groep.filter(function(x){ return x !== s; }))};
+}
+
+/* ===========================================================================
+   4. Op het scherm zetten
+   ========================================================================= */
+function tekstTijd(datum){
+  var u = datum.getHours(), m = datum.getMinutes();
+  return (u < 10 ? '0' : '') + u + ':' + (m < 10 ? '0' : '') + m;
+}
+function tekstDag(datum, nu){
+  var vandaag = alsIso(nu), iso = alsIso(datum);
+  if (iso === vandaag) return 'vandaag';
+  var morgen = new Date(nu); morgen.setDate(morgen.getDate() + 1);
+  if (iso === alsIso(morgen)) return 'morgen';
+  return DAGKORT[datum.getDay()] + ' ' + datum.getDate() + ' ' + MAANDKORT[datum.getMonth()];
+}
+function maakEl(tag, klasse, tekst){
+  var el = document.createElement(tag);
+  if (klasse) el.className = klasse;
+  if (tekst !== undefined && tekst !== null) el.textContent = tekst;
+  return el;
+}
+
+function toonVolgende(standen, nu){
+  var vak = document.getElementById('volgende');
+  vak.textContent = '';
+
+  var bezige = standen.filter(function(s){ return s.bezig; });
+  var wachtend = standen.filter(function(s){ return s.volgende; })
+    .sort(function(a,b){ return a.volgende.start - b.volgende.start; });
+
+  var toon = bezige.length ? bezige[0] : (wachtend.length ? wachtend[0] : null);
+  if (!toon){
+    vak.appendChild(maakEl('div','eyebrow','Klaar'));
+    vak.appendChild(maakEl('div','klas','Geen les meer'));
+    vak.appendChild(maakEl('div','vak','Het studiejaar zit erop.'));
+    return;
+  }
+
+  var nuBezig = !!toon.bezig;
+  var les = nuBezig ? toon.bezig : toon.volgende;
+  var nummer = nuBezig ? toon.bezigNr : toon.volgendeNr;
+  vak.style.setProperty('--streep', kleurVan(toon.vak));
+
+  var eyebrow = maakEl('div','eyebrow');
+  eyebrow.appendChild(maakEl('span','stip' + (nuBezig ? ' leeft' : '')));
+  eyebrow.appendChild(maakEl('span', null, nuBezig ? 'Nu bezig' : 'Hierna'));
+  vak.appendChild(eyebrow);
+
+  vak.appendChild(maakEl('div','klas', toon.klas.replace('-',' ')));
+  vak.appendChild(maakEl('div','vak', toon.vak));
+
+  var bal = maakEl('div','lesbal');
+  bal.appendChild(maakEl('div','label', nuBezig ? 'Je geeft nu' : 'Voorbereiden'));
+  bal.appendChild(maakEl('div','nr','les ' + nummer));
+  var duiding = vergelijkTekst(toon);
+  bal.appendChild(maakEl('div','vergelijk ' + duiding.klasse, duiding.tekst));
+  vak.appendChild(bal);
+
+  var wanneer = maakEl('div','wanneer');
+  var wanneerChip = maakEl('span','chip sterk',
+    tekstDag(les.start, nu) + ' ' + tekstTijd(les.start) + '-' + tekstTijd(les.eindtijd));
+  wanneer.appendChild(wanneerChip);
+  if (les.lokaal) wanneer.appendChild(maakEl('span','chip', les.lokaal));
+  if (les.tijdWisselt) wanneer.appendChild(maakEl('span','chip','tijd wisselt, kijk in je agenda'));
+  vak.appendChild(wanneer);
+}
+
+function toonKaarten(standen, nu){
+  var vak = document.getElementById('kaarten');
+  vak.textContent = '';
+
+  var op = standen.slice().sort(function(a,b){
+    var ta = a.bezig ? 0 : (a.volgende ? a.volgende.start.getTime() : Infinity);
+    var tb = b.bezig ? 0 : (b.volgende ? b.volgende.start.getTime() : Infinity);
+    if (ta !== tb) return ta - tb;
+    return a.klas.localeCompare(b.klas);
+  });
+
+  op.forEach(function(s){
+    var kaart = maakEl('div','kaart' + (s.bezig ? ' aanbeurt' : ''));
+    kaart.style.setProperty('--streep', kleurVan(s.vak));
+    if (s.bezig) kaart.appendChild(maakEl('span','nu-badge','nu'));
+
+    var titel = maakEl('div','titel');
+    titel.appendChild(maakEl('span','klasnaam', s.klas.replace('-',' ')));
+    titel.appendChild(maakEl('span','vaknaam', s.vak));
+    kaart.appendChild(titel);
+
+    var cijfers = maakEl('div','cijfers');
+    var pijl = maakEl('div','cijfer pijl');
+    pijl.appendChild(maakEl('div','k', s.bezig ? 'nu bezig' : 'volgende'));
+    pijl.appendChild(maakEl('div','v','les ' + (s.bezig ? s.bezigNr : s.volgendeNr)));
+    cijfers.appendChild(pijl);
+
+    var gehad = maakEl('div','cijfer');
+    gehad.appendChild(maakEl('div','k','gehad'));
+    gehad.appendChild(maakEl('div','v dof', s.gehad + (s.gehad === 1 ? ' les' : ' lessen')));
+    cijfers.appendChild(gehad);
+    kaart.appendChild(cijfers);
+
+    var balk = maakEl('div','balk');
+    var vulling = maakEl('i');
+    var deel = s.totaal > 0 ? Math.max(0, Math.min(1, s.gehad / s.totaal)) : 0;
+    vulling.style.width = (deel * 100).toFixed(1) + '%';
+    balk.appendChild(vulling);
+    kaart.appendChild(balk);
+
+    var duiding = vergelijkTekst(s);
+    kaart.appendChild(maakEl('div','vergelijk ' + duiding.klasse, duiding.tekst));
+
+    var regel = maakEl('div','regel');
+    if (s.volgende){
+      regel.appendChild(document.createTextNode(
+        tekstDag(s.volgende.start, nu) + ' ' + tekstTijd(s.volgende.start)));
+      if (s.volgende.lokaal){
+        var em = maakEl('em', null, ' · ' + s.volgende.lokaal);
+        regel.appendChild(em);
+      }
+    } else {
+      regel.appendChild(maakEl('em', null, 'geen les meer ingeroosterd'));
+    }
+    kaart.appendChild(regel);
+    vak.appendChild(kaart);
+  });
+}
+
+function toonDag(lessen, nu){
+  var titel = document.getElementById('dagtitel');
+  var vak = document.getElementById('dagvak');
+  vak.textContent = '';
+  titel.textContent = 'Vandaag';
+
+  var dagIso = alsIso(nu);
+  var vanDaag = lessen.filter(function(l){ return alsIso(l.start) === dagIso; });
+
+  // Is het vandaag vrij? Kijk dan vooruit naar de eerstvolgende schooldag.
+  if (!vanDaag.length){
+    var reden = vrijeDag(nu);
+    var volgendeLes = null;
+    for (var i = 0; i < lessen.length; i++){
+      if (lessen[i].start > nu){ volgendeLes = lessen[i]; break; }
+    }
+    if (volgendeLes){
+      dagIso = alsIso(volgendeLes.start);
+      vanDaag = lessen.filter(function(l){ return alsIso(l.start) === dagIso; });
+      var d = volgendeLes.start;
+      titel.textContent = DAGNAAM[d.getDay()] + ' ' + d.getDate() + ' ' + MAANDKORT[d.getMonth()];
+      var em = maakEl('em', null, reden ? 'vandaag is het ' + reden : 'vandaag heb je geen les');
+      titel.appendChild(em);
+    } else {
+      vak.appendChild(maakEl('div','leeg','Geen lessen meer ingeroosterd.'));
+      return;
+    }
+  }
+
+  var beginUur = 24, eindUur = 0;
+  vanDaag.forEach(function(l){
+    var s = l.start.getHours() + l.start.getMinutes() / 60;
+    var e = l.eindtijd.getHours() + l.eindtijd.getMinutes() / 60;
+    if (s < beginUur) beginUur = s;
+    if (e > eindUur) eindUur = e;
+  });
+  // Een half uur lucht aan weerszijden, afgerond op halve uren.
+  beginUur = Math.max(0, Math.floor((beginUur - 0.5) * 2) / 2);
+  eindUur = Math.min(24, Math.ceil((eindUur + 0.5) * 2) / 2);
+  var spanUren = eindUur - beginUur;
+  function plaats(uur){ return ((uur - beginUur) / spanUren) * 100; }
+
+  var lijn = maakEl('div','tijdlijn');
+  vanDaag.forEach(function(l){
+    var s = l.start.getHours() + l.start.getMinutes() / 60;
+    var e = l.eindtijd.getHours() + l.eindtijd.getMinutes() / 60;
+    var blok = maakEl('div','blok' + (l.soort === 'overleg' ? ' overleg' : ''));
+    blok.style.setProperty('--streep', kleurVan(l.vak));
+    blok.style.left = plaats(s) + '%';
+    blok.style.width = Math.max(1.6, plaats(e) - plaats(s)) + '%';
+    blok.appendChild(maakEl('div','b1', l.klas ? l.klas.replace('-',' ') + ' · ' + l.vak : l.vak));
+    blok.appendChild(maakEl('div','b2', tekstTijd(l.start) + (l.lokaal ? ' · ' + l.lokaal : '')));
+    lijn.appendChild(blok);
+  });
+
+  if (alsIso(nu) === dagIso){
+    var nuUur = nu.getHours() + nu.getMinutes() / 60;
+    if (nuUur >= beginUur && nuUur <= eindUur){
+      var streep = maakEl('div','nulijn');
+      streep.style.left = plaats(nuUur) + '%';
+      lijn.appendChild(streep);
+    }
+  }
+  vak.appendChild(lijn);
+
+  var uren = maakEl('div','uren');
+  for (var u = Math.ceil(beginUur); u <= Math.floor(eindUur); u++){
+    uren.appendChild(maakEl('span', null, (u < 10 ? '0' : '') + u + ':00'));
+  }
+  vak.appendChild(uren);
+}
+
+function toonKop(nu){
+  document.getElementById('tijd').textContent = tekstTijd(nu);
+  document.getElementById('datum').textContent =
+    DAGNAAM[nu.getDay()] + ' ' + nu.getDate() + ' ' + MAANDKORT[nu.getMonth()] + ' ' + nu.getFullYear();
+  var week = lesweekNummer(nu);
+  var reden = vrijeDag(nu);
+  document.getElementById('lesweek').textContent =
+    reden && reden !== 'weekend' ? reden : 'lesweek ' + week;
+}
+
+function toonVoet(){
+  var voet = document.getElementById('voet');
+  voet.textContent = '';
+  var a = maakEl('span');
+  a.appendChild(maakEl('b', null, 'Geteld vanaf '));
+  a.appendChild(document.createTextNode('maandag 24 augustus 2026, vakanties er af.'));
+  var b = maakEl('span');
+  b.appendChild(maakEl('b', null, 'Weekrooster '));
+  b.appendChild(document.createTextNode('uit je agenda, weken 14 en 21 september.'));
+  var c = maakEl('span');
+  c.appendChild(maakEl('b', null, 'Het balkje '));
+  c.appendChild(document.createTextNode('is een ruwe schatting van het jaar, uitgaande van dit rooster.'));
+  var d = maakEl('span');
+  d.appendChild(maakEl('b', null, 'Let op: '));
+  d.appendChild(document.createTextNode('je agenda blijft leidend. Wijzigt het rooster, dan klopt de teller niet meer vanzelf.'));
+  voet.appendChild(a); voet.appendChild(b); voet.appendChild(c); voet.appendChild(d);
+}
+
+var LOGO = "__LOGO_DATA_URI__";
+function toonMerk(){
+  var merk = document.getElementById('merk');
+  if (LOGO && LOGO.indexOf('data:image') === 0){
+    var img = new Image();
+    img.src = LOGO;
+    img.alt = 'Rijn IJssel';
+    merk.appendChild(img);
+  } else {
+    merk.appendChild(maakEl('span', null, 'Rijn IJssel'));
+  }
+}
+
+var ALLE_LESSEN = bouwLessen();
+
+function ververs(){
+  var nu = new Date();
+  var standen = koppelGroepen(bouwStanden(ALLE_LESSEN, nu));
+  toonKop(nu);
+  toonVolgende(standen, nu);
+  toonKaarten(standen, nu);
+  toonDag(ALLE_LESSEN, nu);
+}
+
+if (location.search.indexOf('bureaublad') !== -1 || location.hash.indexOf('bureaublad') !== -1){
+  document.body.classList.add('bureaublad');
+}
+toonMerk();
+toonVoet();
+ververs();
+setInterval(ververs, 30000);
+</script>
+</body>
+</html>
