@@ -48,20 +48,36 @@ verversen.
 
 ## Hoe het telt
 
-De tracker telt alle lesmomenten uit je weekrooster vanaf de eerste lesdag van het
-studiejaar tot nu. Weekenden, vakanties en vrije dagen gaan eraf. Een les telt pas
-mee als hij is afgelopen.
+De tracker telt alle lesmomenten vanaf maandag 31 augustus 2026 tot nu. Weekenden,
+vakanties en vrije dagen gaan eraf. Een les telt pas mee als hij is afgelopen.
 
-Het weekrooster is overgenomen uit je agenda *Mijn rooster* (de myx-feed), uit de
-weken van 14 en 21 september 2026. Die twee weken waren gelijk, dus dat is het
-vaste patroon.
+Er zijn twee bronnen, en de eerste gaat voor de tweede:
+
+1. **Dagen die met de hand zijn vastgelegd** (`UITZONDERINGEN` in het bestand). Dat
+   is de week van 31 augustus, de introductieweek. Daar vielen door de introductie
+   en Kansenmakers veel lessen uit, dus die week telt niet als een normale week.
+   Introductie, Kansenmakers en Summervibes staan er niet in: dat zijn geen lessen
+   van een vak.
+2. **Het vaste weekrooster** voor alle andere dagen. Overgenomen uit de weken van
+   7, 14 en 21 september 2026, die alle drie precies gelijk waren.
+
+### Eén les die nergens meetelt
+
+Op woensdag 2 september stond er om 15:00 een les Slim met AI in je rooster, maar in
+de schermafbeelding was de klascode afgekapt (`EC-ZMCM-O-26-BA...`). Het is dus niet
+te zien of dat 26A of 26B was, en daarom telt die les bij geen van beide mee. Weet je
+het wel, zet hem er dan bij onder `'2026-09-02'`:
+
+```js
+{van:'15:00', tot:'16:00', vak:'Slim met AI', klas:'BACS-26A', lokaal:'MID/3.16'}
+```
 
 ### Waarom dit niet rechtstreeks uit je agenda komt
 
 De myx-feed levert maar een klein venster: ongeveer twee weken vooruit en niets uit
 het verleden. Op 11 september 2026 bevatte hij geen enkele les van vóór die dag.
-Tellen uit de agenda kan daarom niet. Vandaar dat het weekrooster in het bestand
-staat en de tracker zelf rekent.
+Tellen uit de agenda kan daarom niet. Vandaar dat het rooster in het bestand staat
+en de tracker zelf rekent.
 
 ---
 
@@ -80,8 +96,12 @@ correcties: {
 }
 ```
 
-**Andere eerste lesdag?** Pas `eersteLesdag` aan. De tracker rekent alles opnieuw
-door.
+**Andere eerste lesdag?** Pas `eersteLesdag` aan. Die staat nu op 31 augustus 2026,
+de eerste week met lessen. De tracker rekent alles opnieuw door.
+
+**Een dag of week die afwijkt?** Een projectweek, een toetsweek, een dag die uitvalt.
+Zet die dag in `UITZONDERINGEN` met de lessen die er wél waren. Een lege lijst (`[]`)
+betekent: die dag geen enkele les.
 
 **Vakantie erbij of eraf?** Zet een regel in `vrij`, met begindatum, einddatum en
 een naam.
@@ -94,6 +114,9 @@ uit je agenda.
 ## Waar je op moet letten
 
 - **Je agenda blijft leidend.** Deze tracker is een teller, geen rooster.
+- **Valt er een les uit, zeg het dan.** De tracker rekent vooruit alsof elke week
+  een normale week is. Een uitgevallen les zet je recht met een correctie of een
+  regel in `UITZONDERINGEN`.
 - **Het rooster verandert waarschijnlijk per periode.** Vanaf periode 4 gaan
   ABS-studenten op stage. Laat het weekrooster dan bijwerken, anders telt de
   tracker door met een rooster dat niet meer bestaat.
@@ -110,7 +133,7 @@ Studiejaar 2026-2027, Rijn IJssel:
 
 | | |
 |---|---|
-| Eerste lesdag | maandag 24 augustus 2026 |
+| Eerste lesdag van deze klassen | maandag 31 augustus 2026 |
 | Herfstvakantie | 19 t/m 23 oktober 2026 |
 | Kerstvakantie | 21 december 2026 t/m 1 januari 2027 |
 | Voorjaarsvakantie | 8 t/m 12 februari 2027 |
@@ -129,7 +152,7 @@ ze zo nodig aan in `CONFIG.vrij`.
 
 ## Techniek
 
-Eén HTML-bestand van ongeveer 74 KB. Geen build, geen bibliotheken, geen externe
+Eén HTML-bestand van ongeveer 75 KB. Geen build, geen bibliotheken, geen externe
 verzoeken (met een browsertest gecontroleerd: nul verzoeken buiten de pagina zelf).
 Het logo zit als data-URI in het bestand. Huisstijlkleuren komen uit hetzelfde
 tokenbestand als de jaarplanner; alle tekstkleuren halen minimaal 6,9:1 contrast op

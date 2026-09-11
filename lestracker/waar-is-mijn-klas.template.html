@@ -253,8 +253,9 @@ body.bureaublad .blad{padding-left:clamp(16px,13vw,230px)}
    les is uitgevallen en de teller een te hoog getal laat zien, zet je -1.
    ========================================================================= */
 var CONFIG = {
-  // Eerste lesdag van het studiejaar. Vanaf deze dag telt de tracker mee.
-  eersteLesdag: '2026-08-24',
+  // Eerste lesdag van deze klassen. De week van 31 augustus was de eerste week
+  // met lessen; wat daarvoor lag telt niet mee.
+  eersteLesdag: '2026-08-31',
   laatsteLesdag: '2027-07-16',
 
   // Vakanties en vrije dagen van Rijn IJssel, studiejaar 2026-2027.
@@ -321,6 +322,49 @@ var WEEKROOSTER = [
   {dag:5, van:'13:00', tot:'14:00', vak:'Nederlands',        klas:'ABS-26D',  lokaal:'MID/4.17'}
 ];
 
+/* ===========================================================================
+   2b. WEKEN DIE AFWIJKEN VAN HET VASTE ROOSTER
+   ---------------------------------------------------------------------------
+   Voor deze dagen staat hier wat er echt gegeven is; het weekrooster hierboven
+   wordt dan overgeslagen. Introductie, Kansenmakers en Summervibes staan er
+   bewust niet in: dat zijn geen lessen van een vak.
+
+   De week van 31 augustus was de introductieweek. Maandag en donderdag vielen
+   daardoor grotendeels weg. Overgenomen uit het rooster in myx.
+   ========================================================================= */
+var UITZONDERINGEN = {
+  // maandag 31 augustus: introductie en Kansenmakers, geen enkele vakles
+  '2026-08-31': [],
+
+  '2026-09-01': [
+    {van:'08:30', tot:'10:00', soort:'overleg', vak:'Teamoverleg ZMCM', klas:'', lokaal:'MID/3.34'},
+    {van:'10:00', tot:'12:00', vak:'Business Services', klas:'ABS-26C', lokaal:'MID/3.30'},
+    {van:'12:30', tot:'13:30', vak:'Nederlands',        klas:'ABS-26B', lokaal:'MID/3.26'},
+    {van:'13:30', tot:'14:30', vak:'Rekenen',           klas:'ABS-26D', lokaal:'MID/3.35'}
+  ],
+
+  // Woensdag stond er om 15:00 ook een les Slim met AI, maar in het rooster was
+  // de klascode afgekapt (EC-ZMCM-O-26-BA...). Onbekend of dat 26A of 26B was,
+  // dus die les telt nergens mee. Weet je het wel? Zet hem er dan bij.
+  '2026-09-02': [
+    {van:'08:30', tot:'09:30', vak:'Nederlands', klas:'ABS-26C', lokaal:'MID/3.27'},
+    {van:'10:30', tot:'11:30', vak:'Nederlands', klas:'ABS-26D', lokaal:'MID/4.14'},
+    {van:'13:00', tot:'14:00', vak:'Nederlands', klas:'ABS-26A', lokaal:'MID/4.14'}
+  ],
+
+  // donderdag 3 september: introductie van 09:30 tot 14:00
+  '2026-09-03': [
+    {van:'14:00', tot:'15:00', vak:'LBC', klas:'ABS-26C', lokaal:'MID/4.20'}
+  ],
+
+  '2026-09-04': [
+    {van:'08:30', tot:'09:30', vak:'LBC',               klas:'ABS-26C', lokaal:'MID/4.14'},
+    {van:'09:30', tot:'11:30', vak:'Business Services', klas:'ABS-26C', lokaal:'MID/4.14'},
+    {van:'12:00', tot:'13:00', vak:'Rekenen',           klas:'ABS-26C', lokaal:'MID/3.16'},
+    {van:'13:00', tot:'14:00', vak:'Nederlands',        klas:'ABS-26D', lokaal:'MID/4.18'}
+  ]
+};
+
 /* Kleur per vak. Alle kleuren halen minimaal 6,9:1 contrast op #1A1033. */
 var VAKKLEUR = {
   'Nederlands':        '#ff7a1a',
@@ -368,10 +412,19 @@ function bouwLessen(){
   var lijst = [], eind = datumUit(CONFIG.laatsteLesdag);
   var loper = datumUit(CONFIG.eersteLesdag);
   while (loper <= eind){
-    if (!vrijeDag(loper)){
+    var afwijkend = UITZONDERINGEN[alsIso(loper)];
+    var bron = null;
+    if (afwijkend){
+      bron = afwijkend;                 // deze dag is met de hand vastgelegd
+    } else if (!vrijeDag(loper)){
+      bron = [];
       for (var i = 0; i < WEEKROOSTER.length; i++){
-        var r = WEEKROOSTER[i];
-        if (r.dag !== loper.getDay()) continue;
+        if (WEEKROOSTER[i].dag === loper.getDay()) bron.push(WEEKROOSTER[i]);
+      }
+    }
+    if (bron){
+      for (var j = 0; j < bron.length; j++){
+        var r = bron[j];
         lijst.push({
           start: metTijd(loper, r.van), eindtijd: metTijd(loper, r.tot),
           vak: r.vak, klas: r.klas, lokaal: r.lokaal,
@@ -389,7 +442,7 @@ function bouwLessen(){
 function lesweekNummer(nu){
   var loper = datumUit(CONFIG.eersteLesdag), weken = 0, laatsteMaandag = '';
   while (loper <= nu){
-    if (!vrijeDag(loper)){
+    if (UITZONDERINGEN[alsIso(loper)] || !vrijeDag(loper)){
       var maandag = new Date(loper);
       maandag.setDate(maandag.getDate() - (maandag.getDay() - 1));
       var sleutel = alsIso(maandag);
@@ -688,10 +741,10 @@ function toonVoet(){
   voet.textContent = '';
   var a = maakEl('span');
   a.appendChild(maakEl('b', null, 'Geteld vanaf '));
-  a.appendChild(document.createTextNode('maandag 24 augustus 2026, vakanties er af.'));
+  a.appendChild(document.createTextNode('maandag 31 augustus 2026, vakanties er af.'));
   var b = maakEl('span');
-  b.appendChild(maakEl('b', null, 'Weekrooster '));
-  b.appendChild(document.createTextNode('uit je agenda, weken 14 en 21 september.'));
+  b.appendChild(maakEl('b', null, 'Bron: '));
+  b.appendChild(document.createTextNode('je rooster in myx. De introductieweek staat er per dag in, daarna het vaste weekrooster.'));
   var c = maakEl('span');
   c.appendChild(maakEl('b', null, 'Het balkje '));
   c.appendChild(document.createTextNode('is een ruwe schatting van het jaar, uitgaande van dit rooster.'));
