@@ -302,6 +302,17 @@ body.bureaublad .werkbalk{display:none}
       zelf de geschiedenis op die de feed niet heeft. Doe dit eens per week, dan
       klopt de stand ook na uitval of een gewijzigd rooster.</p>
 
+    <div id="via-agenda" hidden>
+      <p style="margin-bottom:14px">Eén klik en de tracker leest je agenda
+        <b>Mijn rooster</b> uit Google Agenda. Je hoeft niets te openen, op te slaan
+        of te delen.</p>
+      <div class="rij" style="margin-top:0">
+        <button type="button" class="knop hoofd" id="knop-agenda">Uit Google Agenda halen</button>
+        <button type="button" class="knop" id="knop-anders">Liever handmatig</button>
+      </div>
+    </div>
+
+    <div id="via-bestand">
     <label for="feed-url">Adres van je roosterfeed</label>
     <input type="url" id="feed-url" placeholder="https://rij.myx.nl/api/InternetCalendar/feed/..."
       spellcheck="false" autocomplete="off">
@@ -316,6 +327,7 @@ body.bureaublad .werkbalk{display:none}
       <div class="rij">
         <span class="stand-bij">Open de feed in je browser, sla hem op als .ics en kies hem hier.</span>
       </div>
+    </div>
     </div>
 
     <div class="melding" id="melding" hidden></div>
@@ -1050,6 +1062,226 @@ function verwerkRooster(tekst){
 }
 
 /* ===========================================================================
+   5b. JE GOOGLE AGENDA LEZEN
+   ---------------------------------------------------------------------------
+   Dit werkt alleen in de versie op claude.ai. Die pagina mag, met jouw eigen
+   toestemming, je Google Agenda uitlezen. Een los bestand op je bureaublad mag
+   dat niet van Google; daar blijft de route via een .ics-bestand.
+
+   De agenda-id hieronder is die van "Mijn rooster". Met alleen die id kan
+   niemand iets lezen; daar is jouw account voor nodig.
+   ========================================================================= */
+var AGENDA_ID = 'o4nb09k1io6bcabmtl4h4q9ecab00sso@import.calendar.google.com';
+var AGENDA_NAAM = 'Mijn rooster';
+var CONNECTOR = 'Google Calendar';
+
+var mcpLaag = null, dbLaag = null, downloadLaag = null;
+
+/* De capaciteiten komen later dan dit script; de pagina werkt zonder. */
+function verbindMetClaude(){
+  if (!window.claude || typeof window.claude.use !== 'function') return;
+
+  window.claude.use('mcp').then(function(laag){
+    if (!laag) return;
+    mcpLaag = laag;
+    document.getElementById('via-agenda').hidden = false;
+    document.getElementById('via-bestand').hidden = true;
+  }).catch(function(){ /* dan blijft de handmatige route staan */ });
+
+  window.claude.use('downloads').then(function(laag){
+    if (laag) downloadLaag = laag;
+  }).catch(function(){ /* dan valt bewaren terug op een gewone verwijzing */ });
+
+  window.claude.use('db').then(function(laag){
+    if (!laag) return;
+    dbLaag = laag;
+    return laadArchiefUitDb();
+  }).catch(function(){ /* zonder db werkt de opslag in de browser prima */ });
+}
+
+/* Het archief staat per maand in een eigen document, anders wordt het te groot. */
+function maandVan(dagsleutel){ return dagsleutel.substring(0, 7); }
+
+function laadArchiefUitDb(){
+  if (!dbLaag) return Promise.resolve();
+  return dbLaag.collection('rooster').get().then(function(documenten){
+    var lijst = documenten && documenten.docs ? documenten.docs : documenten;
+    if (!lijst || !lijst.length) return;
+    var gevonden = 0, nieuwste = null;
+    for (var i = 0; i < lijst.length; i++){
+      var inhoud = lijst[i].data ? lijst[i].data() : lijst[i];
+      if (!inhoud || !inhoud.dagen) continue;
+      for (var dag in inhoud.dagen){
+        if (Object.prototype.hasOwnProperty.call(inhoud.dagen, dag)){
+          ARCHIEF_INGEBAKKEN[dag] = inhoud.dagen[dag];
+          gevonden++;
+        }
+      }
+      if (inhoud.bijgewerkt && (!nieuwste || inhoud.bijgewerkt > nieuwste)) nieuwste = inhoud.bijgewerkt;
+    }
+    if (!gevonden) return;
+    if (nieuwste) opslagSchrijf(ARCHIEF_STAND_SLEUTEL, nieuwste);
+    ALLE_LESSEN = bouwLessen();
+    ververs();
+    toonVoet();
+    toonStandBij();
+  });
+}
+
+function bewaarArchiefInDb(dagen){
+  if (!dbLaag) return Promise.resolve();
+  var perMaand = {};
+  for (var dag in dagen){
+    if (!Object.prototype.hasOwnProperty.call(dagen, dag)) continue;
+    var maand = maandVan(dag);
+    if (!perMaand[maand]) perMaand[maand] = {};
+    perMaand[maand][dag] = dagen[dag];
+  }
+  var stempel = new Date().toISOString();
+  var beloftes = [];
+  for (var m in perMaand){
+    if (Object.prototype.hasOwnProperty.call(perMaand, m)){
+      beloftes.push(dbLaag.doc('rooster/' + m).set({dagen: perMaand[m], bijgewerkt: stempel}));
+    }
+  }
+  return Promise.all(beloftes);
+}
+
+/* Een afspraak uit Google Agenda heeft dezelfde opbouw als een uit myx:
+   "vak, klascode, docentcode" met het lokaal in het veld ernaast. */
+function agendaKlok(waarde){
+  var m = String(waarde).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return null;
+  return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], 0);
+}
+
+function ontleedAgendaItem(item){
+  if (!item.start || !item.start.dateTime) return null;   // hele dag: geen les
+  var begin = agendaKlok(item.start.dateTime);
+  if (!begin) return null;
+  var eind = (item.end && item.end.dateTime ? agendaKlok(item.end.dateTime) : null) || begin;
+  var ontleed = ontleedAfspraak({
+    samenvatting: item.summary || '',
+    lokaal: item.location || null,
+    start: begin, eind: eind
+  });
+  return {datum: alsIso(begin), les: ontleed};
+}
+
+function haalUitAgenda(){
+  if (!mcpLaag) return;
+  var knop = document.getElementById('knop-agenda');
+  knop.disabled = true;
+  meldStatus('Bezig met je agenda lezen...');
+
+  var vanaf = new Date(); vanaf.setDate(vanaf.getDate() - 7);
+  var tot = new Date(); tot.setDate(tot.getDate() + 45);
+
+  var alles = [];
+  function pagina(token){
+    var vraag = {
+      calendarId: AGENDA_ID,
+      startTime: vanaf.toISOString(),
+      endTime: tot.toISOString(),
+      orderBy: 'startTime',
+      pageSize: 250,
+      timeZone: 'Europe/Amsterdam'
+    };
+    if (token) vraag.pageToken = token;
+    return mcpLaag.callTool(CONNECTOR, 'list_events', vraag).then(function(uitkomst){
+      var lading = uitkomst && uitkomst.payload;
+      if (typeof lading === 'string'){
+        try { lading = JSON.parse(lading); } catch (fout) { lading = null; }
+      }
+      if (!lading) throw {code: 'leeg', message: 'De agenda gaf niets bruikbaars terug.'};
+      if (lading.events && lading.events.length) alles = alles.concat(lading.events);
+      if (lading.nextPageToken && alles.length < 700) return pagina(lading.nextPageToken);
+    });
+  }
+
+  pagina(null).then(function(){
+    if (!alles.length) throw {code: 'leeg', message: 'Er stonden geen afspraken in deze periode.'};
+    var uitkomst = verwerkAgenda(alles);
+    return bewaarArchiefInDb(leesArchief()).then(function(){ return uitkomst; });
+  }).then(function(uitkomst){
+    naVerversen(uitkomst);
+  }).catch(function(fout){
+    meldStatus(agendaFoutTekst(fout), 'fout');
+  }).then(function(){ knop.disabled = false; });
+}
+
+/* Elke foutsoort heeft een eigen oplossing; een algemene melding helpt niemand. */
+function agendaFoutTekst(fout){
+  var code = fout && fout.code;
+  if (code === 'needs_reauth'){
+    return 'De koppeling met Google Agenda is verlopen. Verbind hem opnieuw in je ' +
+           'instellingen op claude.ai, onder Connectoren.';
+  }
+  if (code === 'server_not_connected'){
+    return 'Google Agenda is hier niet gekoppeld. Voeg de connector toe in je ' +
+           'instellingen op claude.ai, onder Connectoren.';
+  }
+  if (code === 'blocked_by_policy' || code === 'approval_required'){
+    return 'Je mag deze koppeling hier niet gebruiken. Gebruik dan de handmatige route.';
+  }
+  if (code === 'not_in_manifest'){
+    return 'Deze pagina mag de agenda niet lezen. Laat Claude hem opnieuw publiceren.';
+  }
+  if (code === 'server_unavailable' || code === 'rate_limited'){
+    return 'Google Agenda antwoordde niet op tijd. Probeer het over een minuut nog eens.';
+  }
+  if (code === 'tool_error'){
+    return 'De agenda meldde een fout: ' + (fout.message || 'onbekend') +
+           ' Klopt de naam van de agenda nog?';
+  }
+  return 'Het lezen lukte niet: ' + ((fout && fout.message) || 'onbekende oorzaak') +
+         ' Je kunt altijd de handmatige route gebruiken.';
+}
+
+/* Zet de afspraken in het archief. Ook lege werkdagen binnen het bereik, zodat
+   een uitgevallen les niet blijft meetellen. */
+function verwerkAgenda(items){
+  var perDag = {}, gelezen = 0, vroegste = null, laatste = null;
+  for (var i = 0; i < items.length; i++){
+    var uitgepakt = ontleedAgendaItem(items[i]);
+    if (!uitgepakt) continue;
+    if (!perDag[uitgepakt.datum]) perDag[uitgepakt.datum] = [];
+    perDag[uitgepakt.datum].push(uitgepakt.les);
+    gelezen++;
+    if (!vroegste || uitgepakt.datum < vroegste) vroegste = uitgepakt.datum;
+    if (!laatste || uitgepakt.datum > laatste) laatste = uitgepakt.datum;
+  }
+  if (!vroegste) return {dagen: 0, afspraken: 0, bewaard: false};
+
+  var loper = datumUit(vroegste), stop = datumUit(laatste);
+  while (loper <= stop){
+    var sleutel = alsIso(loper);
+    if (!perDag[sleutel] && loper.getDay() !== 0 && loper.getDay() !== 6) perDag[sleutel] = [];
+    loper.setDate(loper.getDate() + 1);
+  }
+
+  var dagen = 0;
+  for (var d in perDag){
+    if (Object.prototype.hasOwnProperty.call(perDag, d)){
+      perDag[d].sort(function(x, y){ return x.van < y.van ? -1 : 1; });
+      ARCHIEF_INGEBAKKEN[d] = perDag[d];
+      dagen++;
+    }
+  }
+
+  var bestaand = {};
+  var rauw = opslagLees(ARCHIEF_SLEUTEL);
+  if (rauw){ try { bestaand = JSON.parse(rauw); } catch (fout) { bestaand = {}; } }
+  for (d in perDag){
+    if (Object.prototype.hasOwnProperty.call(perDag, d)) bestaand[d] = perDag[d];
+  }
+  var bewaard = opslagSchrijf(ARCHIEF_SLEUTEL, JSON.stringify(bestaand));
+  opslagSchrijf(ARCHIEF_STAND_SLEUTEL, new Date().toISOString());
+
+  return {dagen: dagen, afspraken: gelezen, bewaard: bewaard || !!dbLaag};
+}
+
+/* ===========================================================================
    6. De knoppen
    ========================================================================= */
 function meldStatus(tekst, soort){
@@ -1130,19 +1362,27 @@ function bewaarKopie(){
   html = html.replace(/\/\* ARCHIEF-BEGIN \*\/[\s\S]*?\/\* ARCHIEF-EIND \*\//,
     '/* ARCHIEF-BEGIN */\nvar ARCHIEF_INGEBAKKEN = ' + archief + ';\n/* ARCHIEF-EIND */');
 
-  var blob = new Blob([html], {type: 'text/html'});
-  var link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'waar-is-mijn-klas.html';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(function(){ URL.revokeObjectURL(link.href); }, 1000);
+  if (downloadLaag){
+    downloadLaag.save({filename: 'waar-is-mijn-klas.html', data: html}).then(function(){
+      meldStatus('Bewaard. Zet dit bestand over het oude heen en herlaad je achtergrond.', 'goed');
+    }).catch(function(){
+      meldStatus('Het bewaren is afgebroken. Klik nog eens als je het toch wilt.', 'fout');
+    });
+  } else {
+    var blob = new Blob([html], {type: 'text/html'});
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'waar-is-mijn-klas.html';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function(){ URL.revokeObjectURL(link.href); }, 1000);
+    meldStatus('Bewaard. Zet dit bestand over het oude heen en herlaad je achtergrond.', 'goed');
+  }
 
   toonMerk();
   toonVoet();
   ververs();
-  meldStatus('Bewaard. Zet dit bestand over het oude heen en herlaad je achtergrond.', 'goed');
 }
 
 var ALLE_LESSEN = bouwLessen();
@@ -1179,6 +1419,11 @@ document.addEventListener('keydown', function(gebeurtenis){
   if (gebeurtenis.key === 'Escape' && !paneel.hidden) paneel.hidden = true;
 });
 document.getElementById('knop-ophalen').addEventListener('click', haalFeedOp);
+document.getElementById('knop-agenda').addEventListener('click', haalUitAgenda);
+document.getElementById('knop-anders').addEventListener('click', function(){
+  document.getElementById('via-bestand').hidden = false;
+  this.hidden = true;
+});
 document.getElementById('knop-bewaren').addEventListener('click', bewaarKopie);
 document.getElementById('ics-bestand').addEventListener('change', function(){ leesBestand(this); });
 toonStandBij();
@@ -1206,6 +1451,8 @@ function stilBijwerken(){
 }
 setTimeout(stilBijwerken, 8000);
 setInterval(stilBijwerken, 6 * 60 * 60 * 1000);
+
+verbindMetClaude();
 </script>
 </body>
 </html>
