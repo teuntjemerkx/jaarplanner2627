@@ -1,4 +1,4 @@
-import { PERIODES, VAKKEN, WEKEN_PER_PERIODE, type VakId } from '../data/curriculum'
+import { PERIODES, VAKKEN, WEKEN_PER_PERIODE, type Periode } from '../data/curriculum'
 import {
   botUrenPerWeek,
   bouwVakMatrix,
@@ -9,7 +9,7 @@ import {
 } from '../lib/berekeningen'
 import { formatKort, type HuidigePositie, type PeriodeDatums } from '../lib/datum'
 import type { Taak } from '../lib/types'
-import { Cijfer, Icoon, Legenda, Merk, Stapelbalk, periodeStapel } from './Basis'
+import { Cijfer, Merk } from './Basis'
 
 interface Props {
   datums: PeriodeDatums[] | null
@@ -19,17 +19,52 @@ interface Props {
   onGaNaarInstellingen: () => void
 }
 
-export default function Jaaroverzicht({
-  datums,
-  positie,
-  taken,
-  onKiesPeriode,
-  onGaNaarInstellingen,
-}: Props) {
+interface Fase {
+  titel: string
+  uitleg: string
+  periodes: Periode[]
+  metStage: boolean
+}
+
+/**
+ * Deelt het jaar op in blokken periodes die hetzelfde werken. Voor leerjaar 1
+ * levert dat twee helften op: eerst alleen school, daarna school met stage.
+ * De indeling komt uit de data en niet uit vaste getallen, zodat hij vanzelf
+ * meeverandert als het rooster wijzigt.
+ */
+function bepaalFases(): Fase[] {
+  const fases: Fase[] = []
+  for (const p of PERIODES) {
+    const metStage = p.stageUrenPerWeek > 0
+    const laatste = fases[fases.length - 1]
+    if (laatste && laatste.metStage === metStage) {
+      laatste.periodes.push(p)
+    } else {
+      fases.push({ titel: '', uitleg: '', periodes: [p], metStage })
+    }
+  }
+  return fases.map((f) => {
+    const van = f.periodes[0].nummer
+    const tot = f.periodes[f.periodes.length - 1].nummer
+    const reeks = van === tot ? `Periode ${van}` : `Periode ${van} t/m ${tot}`
+    const stage = f.periodes[0].stageUrenPerWeek
+    return {
+      ...f,
+      titel: f.metStage ? `${reeks}: school én stage` : `${reeks}: alleen school`,
+      uitleg: f.metStage
+        ? `Je gaat naar school én je loopt ${uren(stage)} uur per week stage.`
+        : 'Je bent alle dagen op school. Je stage begint later dit jaar.',
+    }
+  })
+}
+
+export default function Jaaroverzicht({ datums, positie, taken, onKiesPeriode, onGaNaarInstellingen }: Props) {
   const matrix = bouwVakMatrix()
   const botJaar = totaalBotUrenJaar()
   const stageJaar = totaalStageUrenJaar()
   const nuNummer = positie?.status === 'in' ? positie.periodeNummer : null
+  const fases = bepaalFases()
+  const maxJaarUren = Math.max(...matrix.map((r) => r.jaarUren))
 
   const openTakenPerPeriode = new Map<number, number>()
   for (const t of taken) {
@@ -42,10 +77,72 @@ export default function Jaaroverzicht({
       ? 100
       : positie.status === 'voor' && positie.periodeNummer === 1
         ? 0
-        : ((positie.periodeNummer - 1) * WEKEN_PER_PERIODE + Math.max(0, positie.weekInPeriode)) /
-          (PERIODES.length * WEKEN_PER_PERIODE) *
+        : (((positie.periodeNummer - 1) * WEKEN_PER_PERIODE + Math.max(0, positie.weekInPeriode)) /
+            (PERIODES.length * WEKEN_PER_PERIODE)) *
           100
     : 0
+
+  function PeriodeKaart({ p }: { p: Periode }) {
+    const week = botUrenPerWeek(p)
+    const stage = stageUrenPerWeek(p)
+    const kans1 = p.examens.filter((e) => e.kans === 1).length
+    const kans2 = p.examens.filter((e) => e.kans === 2).length
+    const open = openTakenPerPeriode.get(p.nummer) ?? 0
+    const isNu = nuNummer === p.nummer
+    const isVoorbij = nuNummer != null && p.nummer < nuNummer
+    const d = datums?.find((x) => x.nummer === p.nummer)
+    const totaal = week + stage
+
+    return (
+      <button
+        type="button"
+        className={`pk${isNu ? ' pk--nu' : ''}${isVoorbij ? ' pk--klaar' : ''}`}
+        onClick={() => onKiesPeriode(p.nummer)}
+        aria-label={`Periode ${p.nummer} openen. ${uren(week)} uur les per week${
+          stage > 0 ? `, ${uren(stage)} uur stage` : ''
+        }.`}
+      >
+        <div className="pk__kop">
+          <span className="pk__nr">Periode {p.nummer}</span>
+          {isNu && <Merk soort="nu">nu</Merk>}
+        </div>
+        <span className="pk__datum">{d ? `${formatKort(d.start)} t/m ${formatKort(d.eind)}` : `${p.weken} weken`}</span>
+
+        <dl className="pk__uren">
+          <div>
+            <dt>les op school</dt>
+            <dd>
+              {uren(week)} <span>uur</span>
+            </dd>
+          </div>
+          {stage > 0 && (
+            <div>
+              <dt>stage</dt>
+              <dd>
+                {uren(stage)} <span>uur</span>
+              </dd>
+            </div>
+          )}
+        </dl>
+
+        {/* Alleen tonen als er echt iets te verdelen valt. Een balk die voor
+            100% uit één kleur bestaat draagt geen informatie. */}
+        {stage > 0 && (
+          <div className="verdeel" aria-hidden="true">
+            <i className="verdeel__les" style={{ width: `${(week / totaal) * 100}%` }} />
+            <i className="verdeel__stage" style={{ width: `${(stage / totaal) * 100}%` }} />
+          </div>
+        )}
+
+        <div className="pk__voet">
+          {kans1 > 0 && <Merk soort="examen">{kans1} examen{kans1 > 1 ? 's' : ''}</Merk>}
+          {kans2 > 0 && <Merk soort="herkansing">{kans2} herkansing{kans2 > 1 ? 'en' : ''}</Merk>}
+          {kans1 === 0 && kans2 === 0 && <span className="pk__geen">geen examens</span>}
+          {open > 0 && <Merk soort="taak">{open} eigen taak{open > 1 ? 'en' : ''}</Merk>}
+        </div>
+      </button>
+    )
+  }
 
   return (
     <>
@@ -56,9 +153,8 @@ export default function Jaaroverzicht({
             Jouw hele jaar <em>op één plek</em>
           </h1>
           <p className="hero__onder">
-            Je jaar bestaat uit {PERIODES.length} periodes. Elke periode duurt {WEKEN_PER_PERIODE} weken.
-            Hieronder zie je hoeveel uur je per vak hebt. Ook zie je wanneer je examen doet en wanneer je
-            stage begint. Klik op een periode voor meer info.
+            Je jaar bestaat uit {PERIODES.length} periodes van {WEKEN_PER_PERIODE} weken. Klik op een
+            periode en je ziet precies welke vakken je hebt, hoeveel uur en welke examens eraan komen.
           </p>
           <div className="hero__cijfers">
             <Cijfer waarde={PERIODES.length} label="periodes" />
@@ -119,68 +215,40 @@ export default function Jaaroverzicht({
         </div>
       </section>
 
-      <section className="sectie" aria-labelledby="backbone-titel">
-        <div className="sectie__kop">
-          <div>
-            <h2 className="sectie__titel" id="backbone-titel">
-              Je jaar op een rij
-            </h2>
-            <p className="sectie__uitleg">
-              Elk blokje is één periode. De gekleurde balk laat zien hoeveel uur je aan elk vak hebt.
-              Vanaf periode 4 ga je ook op stage.
-            </p>
-          </div>
-          <p className="hint">Klik op een periode voor meer info</p>
-        </div>
-
-        <div className="rail">
-          {PERIODES.map((p, i) => {
-            const week = botUrenPerWeek(p)
-            const stage = stageUrenPerWeek(p)
-            const kans1 = p.examens.filter((e) => e.kans === 1).length
-            const kans2 = p.examens.filter((e) => e.kans === 2).length
-            const open = openTakenPerPeriode.get(p.nummer) ?? 0
-            const isNu = nuNummer === p.nummer
-            const isVoorbij = nuNummer != null && p.nummer < nuNummer
-            const d = datums?.[i]
-            return (
-              <button
-                type="button"
-                key={p.nummer}
-                className={`pk${isNu ? ' pk--nu' : ''}${isVoorbij ? ' pk--klaar' : ''}`}
-                onClick={() => onKiesPeriode(p.nummer)}
-                aria-label={`Periode ${p.nummer} openen. ${uren(week)} lesuren per week${
-                  stage > 0 ? `, ${uren(stage)} uur stage` : ''
-                }.`}
-              >
-                <div className="pk__kop">
-                  <span className="pk__nr">
-                    {p.nummer}
-                    <small> / {PERIODES.length}</small>
+      {fases.map((fase, i) => {
+        const week = botUrenPerWeek(fase.periodes[0])
+        const stage = stageUrenPerWeek(fase.periodes[0])
+        return (
+          <section className="fase" key={i} aria-labelledby={`fase-${i}`}>
+            <div className="fase__kop">
+              <span className="fase__stap" aria-hidden="true">
+                {i + 1}
+              </span>
+              <div>
+                <h2 className="fase__titel" id={`fase-${i}`}>
+                  {fase.titel}
+                </h2>
+                <p className="fase__uitleg">{fase.uitleg}</p>
+              </div>
+              <div className="fase__cijfers">
+                <span>
+                  <b>{uren(week)}</b> uur les per week
+                </span>
+                {stage > 0 && (
+                  <span>
+                    <b>{uren(stage)}</b> uur stage per week
                   </span>
-                  {isNu && <Merk soort="nu">nu</Merk>}
-                </div>
-                <span className="pk__datum">{d ? `${formatKort(d.start)} t/m ${formatKort(d.eind)}` : `${p.weken} weken`}</span>
-                <Stapelbalk delen={periodeStapel(p)} />
-                <div className="pk__uren">
-                  <b>{uren(week)}</b>
-                  <span>uur les p/w</span>
-                </div>
-                <div className="pk__voet">
-                  {stage > 0 && (
-                    <Merk soort="stage">{uren(stage)}u stage</Merk>
-                  )}
-                  {kans1 > 0 && <Merk soort="examen">{kans1} examen{kans1 > 1 ? 's' : ''}</Merk>}
-                  {kans2 > 0 && <Merk soort="herkansing">{kans2} herkansing{kans2 > 1 ? 'en' : ''}</Merk>}
-                  {open > 0 && <Merk soort="taak">{open} taak{open > 1 ? 'en' : ''}</Merk>}
-                </div>
-              </button>
-            )
-          })}
-        </div>
-
-        <Legenda vakIds={matrix.map((r) => r.vakId as VakId)} />
-      </section>
+                )}
+              </div>
+            </div>
+            <div className="rail">
+              {fase.periodes.map((p) => (
+                <PeriodeKaart key={p.nummer} p={p} />
+              ))}
+            </div>
+          </section>
+        )
+      })}
 
       <section className="sectie" aria-labelledby="grootste-titel">
         <div className="sectie__kop">
@@ -189,35 +257,28 @@ export default function Jaaroverzicht({
               Waar gaat je tijd naartoe?
             </h2>
             <p className="sectie__uitleg">
-              Dit zijn alle lesuren van het hele jaar bij elkaar opgeteld, per vak. De stage telt hier
-              niet mee.
+              Alle lesuren van het hele jaar bij elkaar opgeteld, per vak. De stage telt hier niet mee.
             </p>
           </div>
         </div>
-        <div className="kaart" style={{ padding: 'clamp(16px, 2.4vw, 24px)' }}>
+        <div className="kaart ranglijst">
           {matrix.map((r) => (
-            <div className="regel" key={r.vakId}>
-              <Icoon teken={VAKKEN[r.vakId].kort.slice(0, 2)} klein kleur={r.kleur} />
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div className="regel__naam">{r.naam}</div>
-                <div className="regel__uitleg">
-                  {r.aantalPeriodes === PERIODES.length
-                    ? 'Alle 8 periodes'
-                    : `${r.aantalPeriodes} van de ${PERIODES.length} periodes`}
-                </div>
-                <div style={{ marginTop: 7 }}>
-                  <Stapelbalk
-                    delen={[
-                      { sleutel: 'vak', label: r.naam, waarde: r.jaarUren, kleur: r.kleur },
-                      { sleutel: 'rest', label: 'overig', waarde: Math.max(0, botJaar - r.jaarUren), kleur: 'rgba(215,195,242,0.10)' },
-                    ]}
-                  />
-                </div>
-              </div>
-              <div className="regel__uren">
-                <b>{uren(r.jaarUren)}</b>
-                <span>uur dit jaar</span>
-              </div>
+            <div className="rang" key={r.vakId}>
+              <span className="rang__naam">
+                <span className="rang__punt" style={{ background: r.kleur }} aria-hidden="true" />
+                {VAKKEN[r.vakId].naam}
+              </span>
+              <span className="rang__balk" aria-hidden="true">
+                <i style={{ width: `${(r.jaarUren / maxJaarUren) * 100}%`, background: r.kleur }} />
+              </span>
+              <span className="rang__uren">
+                <b>{uren(r.jaarUren)}</b> uur
+              </span>
+              <span className="rang__wanneer">
+                {r.aantalPeriodes === PERIODES.length
+                  ? 'het hele jaar'
+                  : `${r.aantalPeriodes} van de ${PERIODES.length} periodes`}
+              </span>
             </div>
           ))}
         </div>

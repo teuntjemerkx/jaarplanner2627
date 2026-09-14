@@ -176,36 +176,64 @@ main.omhulsel { padding-top: 18px; }
 }
 @keyframes pols { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
 
-/* ---------- backbone / tijdlijn ---------- */
-.rail { display: grid; grid-template-columns: repeat(8, minmax(148px, 1fr)); gap: 12px; }
-@media (max-width: 1080px) {
+/* ---------- fases: het jaar in blokken die hetzelfde werken ---------- */
+.fase { margin: 34px 0; }
+.fase__kop {
+  display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.fase__stap {
+  flex: 0 0 auto; display: grid; place-items: center; width: 34px; height: 34px;
+  border-radius: 50%; background: var(--ri-violet); color: #fff;
+  font-weight: 800; font-size: var(--stap-0);
+}
+.fase__titel { font-size: var(--stap-2); }
+.fase__uitleg { font-size: var(--stap-0); color: var(--tekst-gedempt); margin-top: 4px; max-width: 60ch; }
+.fase__cijfers {
+  margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+.fase__cijfers span {
+  padding: 7px 13px; border-radius: 999px; background: var(--vlak-zacht);
+  border: 1px solid var(--rand); font-size: var(--stap--1); color: var(--tekst-zacht); white-space: nowrap;
+}
+.fase__cijfers b { font-size: var(--stap-0); color: var(--tekst); font-weight: 800; }
+@media (max-width: 720px) { .fase__cijfers { margin-left: 0; width: 100%; } }
+
+/* ---------- periodekaarten ---------- */
+.rail { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+@media (max-width: 900px) {
   .rail { display: flex; overflow-x: auto; padding-bottom: 10px; scroll-snap-type: x mandatory; }
-  .rail > * { flex: 0 0 min(74vw, 250px); scroll-snap-align: start; }
+  .rail > * { flex: 0 0 min(78vw, 260px); scroll-snap-align: start; }
 }
 .pk {
   position: relative; display: flex; flex-direction: column; gap: 10px; text-align: left;
-  padding: 14px; border-radius: var(--r-l); border: 1px solid var(--rand);
+  padding: 16px; border-radius: var(--r-l); border: 1px solid var(--rand);
   background: linear-gradient(170deg, var(--vlak), rgba(26, 16, 51, 0.85));
   cursor: pointer; color: inherit;
   transition: transform var(--overgang), border-color var(--overgang), box-shadow var(--overgang);
 }
 .pk:hover { transform: translateY(-4px); border-color: var(--rand-sterk); box-shadow: var(--schaduw-hoog); }
 .pk--nu { border-color: rgba(248, 104, 0, 0.65); box-shadow: var(--gloed-oranje); }
-.pk--klaar { opacity: 0.62; }
+.pk--klaar { opacity: 0.6; }
 .pk--klaar:hover { opacity: 1; }
 .pk__kop { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.pk__nr { font-size: var(--stap-2); font-weight: 800; letter-spacing: -0.04em; }
-.pk__nr small { font-size: var(--stap--1); font-weight: 700; color: var(--tekst-gedempt); letter-spacing: 0; }
-.pk__datum { font-size: var(--stap--1); color: var(--tekst-gedempt); min-height: 1.2em; }
-.pk__uren { display: flex; align-items: baseline; gap: 6px; }
-.pk__uren b { font-size: var(--stap-1); font-weight: 800; }
-.pk__uren span { font-size: var(--stap--1); color: var(--tekst-gedempt); white-space: nowrap; }
+.pk__nr { font-size: var(--stap-1); font-weight: 800; letter-spacing: -0.03em; }
+.pk__datum { font-size: var(--stap--1); color: var(--tekst-gedempt); margin-top: -6px; }
 
-.stapel { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--vlak-zacht); }
-.stapel i { display: block; height: 100%; }
-.stapel--hoog { height: 20px; border-radius: var(--r-s); }
+.pk__uren { display: flex; gap: 18px; margin: 2px 0 0; flex-wrap: wrap; }
+.pk__uren div { display: flex; flex-direction: column-reverse; gap: 1px; }
+.pk__uren dt { font-size: var(--stap--1); color: var(--tekst-gedempt); }
+.pk__uren dd { margin: 0; font-size: var(--stap-2); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.pk__uren dd span { font-size: var(--stap--1); font-weight: 700; color: var(--tekst-gedempt); letter-spacing: 0; }
 
-.pk__voet { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; }
+/* Twee kleuren, meer niet: les tegenover stage. */
+.verdeel { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--vlak-zacht); }
+.verdeel i { display: block; height: 100%; }
+.verdeel__les { background: var(--ri-lichtpaars-1); }
+.verdeel__stage { background: var(--ri-oranje); }
+
+.pk__voet { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; align-items: center; }
+.pk__geen { font-size: 0.72rem; color: var(--tekst-gedempt); }
+
 .merk {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px;
   font-size: 0.72rem; font-weight: 800; letter-spacing: 0.01em; border: 1px solid transparent; white-space: nowrap;
@@ -216,10 +244,32 @@ main.omhulsel { padding-top: 18px; }
 .merk--taak { background: rgba(93, 217, 193, 0.15); color: var(--ok); border-color: rgba(93, 217, 193, 0.4); }
 .merk--nu { background: var(--accent-vlak); color: #fff; }
 
-/* ---------- legenda ---------- */
-.legenda { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; }
-.legenda__item { display: inline-flex; align-items: center; gap: 7px; font-size: var(--stap--1); color: var(--tekst-zacht); }
-.legenda__punt { width: 11px; height: 11px; border-radius: 3px; flex: 0 0 auto; }
+/* Gestapelde balk per vak. Alleen in het detailpaneel, waar er direct
+   onder een gelabelde lijst met alle vakken en hun kleur staat. In het
+   jaaroverzicht is zo'n balk zonder labels juist ruis. */
+.stapel { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--vlak-zacht); }
+.stapel i { display: block; height: 100%; }
+.stapel--hoog { height: 20px; border-radius: var(--r-s); }
+
+/* ---------- ranglijst uren per vak ---------- */
+.ranglijst { padding: clamp(14px, 2vw, 20px); display: flex; flex-direction: column; }
+.rang {
+  display: grid; align-items: center; gap: 4px 14px; padding: 11px 6px;
+  grid-template-columns: minmax(150px, 1.1fr) minmax(80px, 2fr) auto minmax(120px, auto);
+}
+.rang + .rang { border-top: 1px solid rgba(215, 195, 242, 0.09); }
+.rang__naam { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; }
+.rang__punt { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+.rang__balk { display: block; height: 8px; border-radius: 999px; background: var(--vlak-zacht); overflow: hidden; }
+.rang__balk i { display: block; height: 100%; border-radius: 999px; }
+.rang__uren { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--tekst-zacht); font-size: var(--stap--1); }
+.rang__uren b { font-size: var(--stap-1); font-weight: 800; color: var(--tekst); }
+.rang__wanneer { font-size: var(--stap--1); color: var(--tekst-gedempt); text-align: right; }
+@media (max-width: 760px) {
+  .rang { grid-template-columns: 1fr auto; }
+  .rang__balk { grid-column: 1 / -1; order: 3; }
+  .rang__wanneer { grid-column: 1 / -1; order: 4; text-align: left; }
+}
 
 /* ---------- matrix ---------- */
 .tabelhoes { overflow-x: auto; border-radius: var(--r-l); border: 1px solid var(--rand); background: var(--vlak); }

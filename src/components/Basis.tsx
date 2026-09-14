@@ -81,17 +81,4 @@ export function Cijfer({ waarde, label, eenheid }: { waarde: string | number; la
   )
 }
 
-export function Legenda({ vakIds }: { vakIds: VakId[] }) {
-  return (
-    <ul className="legenda" style={{ listStyle: 'none', margin: '16px 0 0', padding: 0 }}>
-      {vakIds.map((id) => (
-        <li key={id} className="legenda__item">
-          <span className="legenda__punt" style={{ background: VAKKEN[id].kleur }} aria-hidden="true" />
-          {VAKKEN[id].naam}
-        </li>
-      ))}
-    </ul>
-  )
-}
-
 export { rond }
