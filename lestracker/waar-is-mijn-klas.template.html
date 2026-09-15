@@ -78,6 +78,16 @@ body{
 /* Bureaubladmodus: laat links ruimte vrij voor de pictogrammen op het bureaublad.
    Zet ?bureaublad achter de bestandsnaam om dit aan te zetten. */
 body.bureaublad .blad{padding-left:clamp(16px,13vw,230px)}
+/* Een achtergrond kan niet scrollen: wat niet past, zie je nooit. Daarom krijgt
+   de pagina in deze modus een schaalfactor mee, berekend in pasInBeeld(). */
+body.bureaublad{overflow:hidden}
+body.bureaublad .blad{
+  transform-origin:top left;
+  transform:scale(var(--schaal,1));
+  width:calc(100% / var(--schaal,1));
+  min-height:0;
+}
+body.bureaublad .raster{flex:0 0 auto}
 
 /* --- kop ---------------------------------------------------------------- */
 .kop{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:22px}
@@ -877,7 +887,15 @@ function toonDag(lessen, nu){
   vak.appendChild(uren);
 }
 
+var laatsteTik = Date.now();
+
 function toonKop(nu){
+  // Zat er een gat van meer dan twee minuten tussen twee tikken, dan heeft een
+  // achtergrondprogramma de pagina stilgezet. De maatvoering kan dan ook
+  // veranderd zijn, dus die rekenen we opnieuw uit.
+  if (Date.now() - laatsteTik > 120000) setTimeout(pasInBeeld, 50);
+  laatsteTik = Date.now();
+
   document.getElementById('tijd').textContent = tekstTijd(nu);
   document.getElementById('datum').textContent =
     DAGNAAM[nu.getDay()] + ' ' + nu.getDate() + ' ' + MAANDKORT[nu.getMonth()] + ' ' + nu.getFullYear();
@@ -1414,6 +1432,33 @@ function bewaarKopie(){
 
 var ALLE_LESSEN = bouwLessen();
 
+/* Meet de pagina op en verklein hem net zo ver dat alles in beeld valt. Windows
+   schaalt op veel laptops naar 125 of 150 procent, waardoor er veel minder ruimte
+   is dan de resolutie doet vermoeden. Alleen verkleinen, nooit vergroten: anders
+   wordt de tekst op een groot scherm onnodig log. */
+function pasInBeeld(){
+  if (!document.body.classList.contains('bureaublad')) return;
+  var wortel = document.documentElement;
+  var blad = document.querySelector('.blad');
+  var ruimte = window.innerHeight;
+  if (!ruimte) return;
+
+  /* De schaal bepaalt ook de breedte van het blad, en de breedte bepaalt hoeveel
+     kaarten er naast elkaar passen, en dus de hoogte. Een enkele berekening klopt
+     daardoor niet; na een paar rondes is het verschil verwaarloosbaar. */
+  var factor = 1;
+  for (var ronde = 0; ronde < 4; ronde++){
+    wortel.style.setProperty('--schaal', String(factor));
+    var nodig = blad.scrollHeight;
+    if (!nodig) return;
+    var doel = ruimte / nodig;
+    doel = Math.max(0.5, Math.min(doel, 1.5));   // niet onleesbaar klein, niet lomp groot
+    if (Math.abs(doel - factor) < 0.01) break;
+    factor = doel;
+  }
+  wortel.style.setProperty('--schaal', String(Math.floor(factor * 1000) / 1000));
+}
+
 function ververs(){
   var nu = new Date();
   var standen = koppelGroepen(bouwStanden(ALLE_LESSEN, nu));
@@ -1421,15 +1466,25 @@ function ververs(){
   toonVolgende(standen, nu);
   toonKaarten(standen, nu);
   toonDag(ALLE_LESSEN, nu);
+  pasInBeeld();
 }
 
 if (location.search.indexOf('bureaublad') !== -1 || location.hash.indexOf('bureaublad') !== -1){
   document.body.classList.add('bureaublad');
 }
+window.addEventListener('resize', pasInBeeld);
 toonMerk();
 toonVoet();
 ververs();
-setInterval(ververs, 30000);
+setInterval(ververs, 5000);
+
+/* Wordt de pagina hervat na een pauze, werk dan onmiddellijk bij in plaats van
+   te wachten op de volgende tik. */
+document.addEventListener('visibilitychange', function(){
+  if (!document.hidden) ververs();
+});
+window.addEventListener('focus', ververs);
+window.addEventListener('pageshow', ververs);
 
 var paneel = document.getElementById('paneel');
 document.getElementById('knop-bijwerken').addEventListener('click', function(){
