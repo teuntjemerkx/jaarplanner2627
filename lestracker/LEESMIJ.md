@@ -99,8 +99,20 @@ chmod +x "Lestracker openen (Mac).command"
 **[Lively Wallpaper](https://www.rocksdanister.com/lively/)** (gratis, Microsoft
 Store), klik op de plusknop, kies *Browse* en wijs `waar-is-mijn-klas.html` aan.
 
-Staan je bureaubladpictogrammen in de weg? Kies het bestand dan met `?bureaublad`
-erachter; de tracker houdt links een strook vrij.
+Gebruik hiervoor `waar-is-mijn-klas-achtergrond.html`. Die is anders ingedeeld dan
+de gewone: de klok staat groot in het midden, de lessen van de dag staan als lijst
+in de linkerkolom, en links blijft een strook vrij voor je bureaubladpictogrammen,
+met een donker vlak eronder zodat ze als een rij in een paneel staan.
+
+Twee getallen daarin kun je zelf bijstellen. Zoek ze op in het bestand:
+
+| Wat | Waar | Wanneer aanpassen |
+|---|---|---|
+| Breedte van de pictogramstrook | `--iconen`, staat op `270px` | sluit het vak niet om je pictogrammen. 270 is goed voor twee kolommen grote pictogrammen, 390 voor drie, 190 voor twee middelgrote |
+| Ruimte voor de taakbalk | `taakbalkHoogte`, staat op `56` | verbergt jouw taakbalk zichzelf? Zet hem op 0 en je wint die ruimte |
+
+De pagina meet zichzelf op en schaalt tot alles binnen beeld valt — nagelopen op
+tien schermmaten van 1093 bij 614 tot 2560 bij 1440.
 
 **Mac.** Dubbelklikken is genoeg. Wil je hem ook als achtergrond:
 **[Plash](https://sindresorhus.com/plash)** (gratis, App Store) → *Open URL*.
