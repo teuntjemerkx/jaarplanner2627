@@ -74,11 +74,25 @@ const artifactPad = losArgument || path.join(hier, 'artifact.html');
 fs.mkdirSync(path.dirname(artifactPad), {recursive: true});
 fs.writeFileSync(artifactPad, artifact);
 
+/* --- 3. de versie voor je bureaubladachtergrond --------------------------- */
+/* Die houdt links een strook vrij voor je bureaubladpictogrammen. Dat kan ook met
+   ?bureaublad achter de bestandsnaam, maar een achtergrondprogramma geeft je niet
+   altijd de kans om iets achter het pad te typen. Vandaar een eigen bestand. */
+const schakelaar = "if (location.search.indexOf('bureaublad') !== -1 || location.hash.indexOf('bureaublad') !== -1){";
+if (!volledig.includes(schakelaar)) {
+  console.error('De schakelaar voor de bureaubladmodus staat niet meer in het sjabloon.');
+  process.exit(1);
+}
+const achtergrond = volledig.replace(schakelaar, 'if (true){  // vaste bureaubladmodus');
+const achtergrondPad = path.join(hier, 'waar-is-mijn-klas-achtergrond.html');
+fs.writeFileSync(achtergrondPad, achtergrond);
+
 const kb = (b) => Math.round(b / 1024) + ' KB';
 console.log('los bestand :', losPad, kb(Buffer.byteLength(volledig)));
+console.log('achtergrond :', achtergrondPad, kb(Buffer.byteLength(achtergrond)));
 console.log('claude.ai   :', artifactPad, kb(Buffer.byteLength(artifact)));
 
-for (const [naam, inhoud] of [['los', volledig], ['artifact', artifact]]) {
+for (const [naam, inhoud] of [['los', volledig], ['achtergrond', achtergrond], ['artifact', artifact]]) {
   if (inhoud.includes('__LOGO_DATA_URI__')) { console.error(naam + ': plaatshouder niet vervangen'); process.exit(1); }
   if (!inhoud.includes('ARCHIEF-BEGIN')) { console.error(naam + ': archiefblok ontbreekt'); process.exit(1); }
 }
