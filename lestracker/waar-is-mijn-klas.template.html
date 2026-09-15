@@ -75,39 +75,108 @@ body{
 @keyframes zweef2{from{transform:translate3d(0,0,0)}to{transform:translate3d(-5vw,-4vh,0)}}
 
 .blad{position:relative;z-index:1;padding:26px clamp(16px,2.4vw,38px) 22px;max-width:2100px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
-/* Bureaubladmodus: laat links ruimte vrij voor de pictogrammen op het bureaublad.
-   Zet ?bureaublad achter de bestandsnaam om dit aan te zetten. */
-body.bureaublad .blad{padding-left:clamp(16px,13vw,230px)}
-/* Een achtergrond kan niet scrollen: wat niet past, zie je nooit. Daarom krijgt
-   de pagina in deze modus een schaalfactor mee, berekend in pasInBeeld(). */
-body.bureaublad{overflow:hidden}
+/* ===========================================================================
+   BUREAUBLADMODUS
+   ---------------------------------------------------------------------------
+   Een achtergrond wordt bekeken, niet gelezen, en er kan niet gescrold worden.
+   De opmaak is hier dus een andere dan in een venster:
+
+     ┌ pictogrammen ┬──────────────────────────────────────────┐
+     │              │ logo                              09:45  │
+     │   (vrij)     ├──────────────┬───────────────────────────┤
+     │              │  NU BEZIG    │  alle klassen             │
+     │              │  ABS 26C     │  (kaarten)                │
+     │              │  les 7       │                           │
+     │              ├──────────────┤                           │
+     │              │  vandaag     │                           │
+     │              │  (lijst)     │                           │
+     └──────────────┴──────────────┴───────────────────────────┘
+
+   De strook voor de pictogrammen zit op de body en niet op het blad, zodat hij
+   buiten de schaling valt en dus altijd even breed blijft. Windows zet zijn
+   pictogrammen in kolommen van ongeveer tachtig pixels; 180 is goed voor twee.
+   Voor drie kolommen zet je --iconen op 260px. */
+body.bureaublad{overflow:hidden;padding-left:var(--iconen,180px)}
+
+/* Een vak onder je bureaubladpictogrammen, zodat die er als een rij in een
+   paneel uitzien in plaats van los op de achtergrond te zweven. Het ligt boven
+   de gloed en onder de tracker, en vangt geen muisklikken: je pictogrammen
+   blijven gewoon aanklikbaar. */
+body.bureaublad::before{
+  content:"";
+  position:fixed;
+  left:12px;
+  top:12px;
+  bottom:calc(var(--taakbalk,56px) + 12px);
+  width:calc(var(--iconen,180px) - 24px);
+  border-radius:22px;
+  background:linear-gradient(180deg,rgba(23,36,86,.78),rgba(15,22,58,.62));
+  border:1px solid rgba(215,195,242,.15);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 20px 45px -26px rgba(0,0,0,.9);
+  z-index:1;
+  pointer-events:none;
+}
+
 body.bureaublad .blad{
+  /* Zonder dit blijft de marge van de gewone opmaak staan, wordt het blad
+     gecentreerd, en schuift het bij vergroting rechts uit beeld. */
+  margin:0;
+  max-width:none;
   transform-origin:top left;
   transform:scale(var(--schaal,1));
   width:calc(100% / var(--schaal,1));
   min-height:0;
+  padding:22px clamp(14px,1.6vw,30px) 18px;
+  display:grid;
+  grid-template-columns:minmax(250px,27%) 1fr;
+  grid-template-rows:auto 1fr auto;
+  grid-template-areas:
+    "kop kop"
+    "nu  kaarten"
+    "dag kaarten";
+  gap:clamp(11px,1.1vw,16px);
+  align-content:start;
 }
-body.bureaublad .raster{flex:0 0 auto;align-items:stretch}
+body.bureaublad .raster{display:contents}
+body.bureaublad .kop{grid-area:kop;margin-bottom:0}
+body.bureaublad .volgende{grid-area:nu}
+body.bureaublad .kaarten{grid-area:kaarten;align-content:start}
 
-/* Op een achtergrond lees je geen uitleg: je kijkt en loopt door. Alles wat
-   toelicht in plaats van informeert, gaat er hier af. De titel ook; het logo
+/* De kaartenkolom is de hoogste; het paneel ernaast rekt mee. Daarom staat de
+   les daarin verticaal gecentreerd in plaats van tegen de bovenrand. */
+body.bureaublad .volgende{display:flex;flex-direction:column;justify-content:center}
+body.bureaublad .dag{grid-area:dag;margin-top:0;min-width:0;overflow:hidden}
+body.bureaublad .volgende{min-width:0}
+body.bureaublad .kaarten{min-width:0}
+
+/* Alles wat toelicht in plaats van informeert gaat eraf. De titel ook; het logo
    linksboven zegt genoeg. */
 body.bureaublad .voet{display:none}
 body.bureaublad .kop h1{display:none}
 
-/* Zonder dit blijft er onder het grote paneel een leeg vlak over zo hoog als de
-   kaarten ernaast. Nu vult het paneel die hoogte en staat de les in het midden. */
-body.bureaublad .volgende{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
+/* Naar een achtergrond kijk je van een meter afstand. Klas en lesnummer mogen
+   daar flink groter; het paneel heeft die ruimte. */
+body.bureaublad .volgende .klas{font-size:clamp(2rem,3.2vw,3.3rem)}
+body.bureaublad .volgende .vak{font-size:clamp(1.05rem,1.5vw,1.4rem)}
+body.bureaublad .lesbal .nr{font-size:clamp(3rem,5.6vw,5.4rem)}
+body.bureaublad .lesbal{padding:18px 20px;margin:16px 0 14px}
+
+/* --- de dag als lijst, niet als tijdlijn --------------------------------
+   In een smalle kolom is een tijdlijn met blokjes onleesbaar. Een lijst laat
+   bovendien in één blik zien wat al geweest is. */
+.daglijst{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.daglijst li{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:baseline;
+  padding:8px 10px;border-radius:9px;min-width:0;
+  border-left:3px solid var(--streep,var(--accent));
+  background:rgba(0,0,0,.18);
 }
-/* Naar een achtergrond kijk je van een meter afstand, en het paneel heeft ruimte
-   over. Klas en lesnummer mogen daar dus flink groter. */
-body.bureaublad .volgende .klas{font-size:clamp(2.2rem,3.6vw,3.7rem)}
-body.bureaublad .volgende .vak{font-size:clamp(1.1rem,1.6vw,1.5rem)}
-body.bureaublad .lesbal .nr{font-size:clamp(3.4rem,6.4vw,6.2rem)}
-body.bureaublad .lesbal{padding:22px 24px}
+.daglijst li.geweest{opacity:.4}
+.daglijst li.bezig{background:var(--vlak-hoog);box-shadow:0 0 0 1px var(--streep)}
+.daglijst .tijd{font-size:.8rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--tekst-zacht)}
+.daglijst li.bezig .tijd{color:var(--streep)}
+.daglijst .wie{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.daglijst .waar{font-size:.71rem;color:var(--tekst-gedempt);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* --- kop ---------------------------------------------------------------- */
 .kop{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:22px}
@@ -390,6 +459,12 @@ var CONFIG = {
   // Tot deze dag is het rooster echt gezien. Daarna rekent de tracker door met
   // het weekrooster. Werk je bij met de knop, dan schuift dit vanzelf op.
   roosterBekendTot: '2026-09-25',
+
+  // Ruimte onderaan die je bureaubladachtergrond niet mag gebruiken, omdat de
+  // taakbalk daar overheen ligt. Windows 11 gebruikt 48 pixels, Windows 10
+  // veertig; 56 geeft wat lucht. Verbergt jouw taakbalk zichzelf, zet dit dan
+  // op 0 en je wint die ruimte terug.
+  taakbalkHoogte: 56,
 
   // Vakanties en vrije dagen van Rijn IJssel, studiejaar 2026-2027.
   vrij: [
@@ -864,6 +939,11 @@ function toonDag(lessen, nu){
     }
   }
 
+  if (document.body.classList.contains('bureaublad')){
+    toonDagAlsLijst(vanDaag, nu, dagIso);
+    return;
+  }
+
   var beginUur = 24, eindUur = 0;
   vanDaag.forEach(function(l){
     var s = l.start.getHours() + l.start.getMinutes() / 60;
@@ -908,6 +988,30 @@ function toonDag(lessen, nu){
 }
 
 var laatsteTik = Date.now();
+
+/* De lessen van de dag onder elkaar: wat geweest is gedempt, waar je nu mee
+   bezig bent opgelicht. */
+function toonDagAlsLijst(vanDaag, nu, dagIso){
+  var vak = document.getElementById('dagvak');
+  var vandaagIsHet = alsIso(nu) === dagIso;
+  var lijst = maakEl('ol','daglijst');
+
+  vanDaag.forEach(function(l){
+    var regel = maakEl('li');
+    regel.style.setProperty('--streep', kleurVan(l.vak));
+    if (vandaagIsHet){
+      if (l.start <= nu && nu < l.eindtijd) regel.className = 'bezig';
+      else if (l.eindtijd <= nu) regel.className = 'geweest';
+    }
+    regel.appendChild(maakEl('span','tijd', tekstTijd(l.start)));
+    regel.appendChild(maakEl('span','wie',
+      l.klas ? l.klas.replace('-',' ') + ' · ' + l.vak : l.vak));
+    regel.appendChild(maakEl('span','waar', l.lokaal || ''));
+    lijst.appendChild(regel);
+  });
+
+  vak.appendChild(lijst);
+}
 
 function toonKop(nu){
   // Zat er een gat van meer dan twee minuten tussen twee tikken, dan heeft een
@@ -1460,8 +1564,10 @@ function pasInBeeld(){
   if (!document.body.classList.contains('bureaublad')) return;
   var wortel = document.documentElement;
   var blad = document.querySelector('.blad');
-  var ruimte = window.innerHeight;
-  if (!ruimte) return;
+  var taakbalk = CONFIG.taakbalkHoogte || 0;
+  wortel.style.setProperty('--taakbalk', taakbalk + 'px');
+  var ruimte = window.innerHeight - taakbalk;
+  if (ruimte <= 0) return;
 
   /* De schaal bepaalt de breedte van het blad, de breedte bepaalt hoeveel kaarten
      er naast elkaar passen, en dat bepaalt weer de hoogte. Een enkele berekening
@@ -1478,15 +1584,33 @@ function pasInBeeld(){
   for (var ronde = 0; ronde < 4; ronde++){
     var hoogte = hoogteBij(factor);
     if (!hoogte) return;
-    var doel = Math.max(0.5, Math.min(factor * (ruimte / hoogte), 1.5));
+    var doel = Math.max(0.5, Math.min(factor * (ruimte / hoogte), 1.35));
     if (Math.abs(doel - factor) < 0.01) break;
     factor = doel;
   }
 
+  function past(f){
+    hoogteBij(f);
+    var maten = blad.getBoundingClientRect();
+    return maten.height <= ruimte + 1 && maten.right <= window.innerWidth + 1;
+  }
+
+  // Omlaag tot het past. Dit is de garantie: hier komt nooit iets uit dat buiten
+  // beeld valt.
   for (var stap = 0; stap < 30 && factor > 0.5; stap++){
-    if (hoogteBij(factor) <= ruimte + 1) break;
+    if (past(factor)) break;
     factor = factor * 0.97;
   }
+
+  // En dan voorzichtig terug omhoog. De eerste schatting slaat gauw te ver door,
+  // omdat een smallere pagina meer rijen kaarten krijgt en dus ineens veel hoger
+  // uitvalt. Kleiner dan nodig is zonde van het scherm.
+  for (var op = 0; op < 25 && factor < 1.35; op++){
+    var kandidaat = Math.min(1.35, factor * 1.04);
+    if (!past(kandidaat)) break;
+    factor = kandidaat;
+  }
+  past(factor);
 
   wortel.style.setProperty('--schaal', String(Math.floor(factor * 1000) / 1000));
 }
