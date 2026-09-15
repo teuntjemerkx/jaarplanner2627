@@ -71,6 +71,28 @@ Ook de stage die in periode 4 begint wordt dan vanzelf goed geteld.
 
 ---
 
+## Als app op je bureaublad
+
+Naast de twee versies staat er in deze map een starter per systeem. Zet die in
+dezelfde map als `waar-is-mijn-klas.html` en dubbelklik hem: de tracker opent dan
+in een eigen venster, zonder adresbalk en zonder tabbladen. Het oogt en werkt als
+een programma.
+
+| Systeem | Bestand | De eerste keer |
+|---|---|---|
+| Windows (HP) | `Lestracker openen (Windows).cmd` | dubbelklikken. Rechtsklik → *Aan taakbalk vastmaken* zet hem naast je andere programma's |
+| Mac | `Lestracker openen (Mac).command` | rechtsklik → *Open*, en bevestig. macOS vraagt dat eenmalig bij een script dat je zelf hebt binnengehaald. Daarna volstaat dubbelklikken |
+
+De starter zoekt Edge, Chrome of Brave en opent de pagina met `--app`. Staat geen
+van die browsers erop, dan opent hij gewoon in je standaardbrowser; je hebt dan een
+tabblad in plaats van een venster, maar alles werkt hetzelfde.
+
+Werkt het dubbelklikken op de Mac niet, draai dan eenmalig in Terminal:
+
+```bash
+chmod +x "Lestracker openen (Mac).command"
+```
+
 ## Als bureaubladachtergrond
 
 **HP (Windows).** Windows kan zelf geen HTML als achtergrond tonen. Installeer
@@ -154,6 +176,17 @@ Na een wijziging bouw je beide versies opnieuw:
 ```bash
 node lestracker/bouw.mjs
 ```
+
+Wil je een los bestand dat meteen klopt, zonder eerst bij te werken? Haal het
+archief uit de opslag van de artifact en bak het mee:
+
+```bash
+node lestracker/bouw.mjs --archief <map met de json-bestanden>
+```
+
+Let op: in dat bestand staat je rooster. Zo'n versie hoort op je eigen computer,
+niet in deze repository en niet in een gedeelde map. De versie die hier in de
+repository staat heeft altijd een leeg archief.
 
 ---
 

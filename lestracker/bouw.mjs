@@ -26,7 +26,34 @@ const logo = logoBron.match(/LOGO_DATA_URI: string \| null = "([^"]+)"/);
 if (!logo) { console.error('Het logo staat niet in src/assets/logo.ts.'); process.exit(1); }
 if (!sjabloon.includes('__LOGO_DATA_URI__')) { console.error('De plaatshouder voor het logo ontbreekt.'); process.exit(1); }
 
-const volledig = sjabloon.replace('__LOGO_DATA_URI__', logo[1]);
+let volledig = sjabloon.replace('__LOGO_DATA_URI__', logo[1]);
+
+/* --- desgevraagd het archief meebakken ----------------------------------- */
+/* Met --archief <map> worden de roosterdagen uit de opslag van de artifact in
+   het bestand gezet, zodat het meteen klopt zonder eerst bij te werken.
+   Let op: dan staat je rooster in het bestand. Zo'n versie hoort niet in een
+   openbare map of in deze repository, alleen op je eigen computer. */
+const archiefVlag = process.argv.indexOf('--archief');
+if (archiefVlag !== -1) {
+  const map = process.argv[archiefVlag + 1];
+  if (!map) { console.error('Geef een map mee na --archief.'); process.exit(1); }
+  const dagen = {};
+  let bestanden = 0;
+  for (const naam of fs.readdirSync(map).sort()) {
+    if (!naam.endsWith('.json')) continue;
+    const doc = JSON.parse(fs.readFileSync(path.join(map, naam), 'utf8'));
+    const inhoud = doc.data || doc;
+    Object.assign(dagen, inhoud.dagen || {});
+    bestanden++;
+  }
+  const gesorteerd = {};
+  for (const dag of Object.keys(dagen).sort()) gesorteerd[dag] = dagen[dag];
+  const json = JSON.stringify(gesorteerd, null, 1).replace(/</g, '\\u003c');
+  const blok = /\/\* ARCHIEF-BEGIN \*\/[\s\S]*?\/\* ARCHIEF-EIND \*\//;
+  if (!blok.test(volledig)) { console.error('Het archiefblok staat niet in het sjabloon.'); process.exit(1); }
+  volledig = volledig.replace(blok, '/* ARCHIEF-BEGIN */\nvar ARCHIEF_INGEBAKKEN = ' + json + ';\n/* ARCHIEF-EIND */');
+  console.log('archief      :', Object.keys(gesorteerd).length, 'dagen uit', bestanden, 'bestand(en) meegebakken');
+}
 
 /* --- 1. het losse bestand ------------------------------------------------ */
 const losPad = path.join(hier, 'waar-is-mijn-klas.html');
@@ -35,12 +62,15 @@ fs.writeFileSync(losPad, volledig);
 /* --- 2. de versie voor claude.ai ----------------------------------------- */
 /* Die krijgt zijn eigen doctype, head en body van het platform, dus die laten
    we hier weg. Titel, stijl en de inhoud van de body blijven. */
-const kop = volledig.match(/<title>[\s\S]*?<\/style>/);
-const romp = volledig.match(/<body>([\s\S]*)<\/body>/);
+const schoon = sjabloon.replace('__LOGO_DATA_URI__', logo[1]);
+const kop = schoon.match(/<title>[\s\S]*?<\/style>/);
+const romp = schoon.match(/<body>([\s\S]*)<\/body>/);
 if (!kop || !romp) { console.error('De opbouw van het sjabloon is veranderd; knippen lukt niet.'); process.exit(1); }
 
 const artifact = kop[0] + '\n' + romp[1].trim() + '\n';
-const artifactPad = process.argv[2] || path.join(hier, 'artifact.html');
+const losArgument = process.argv.slice(2).find((a, i) =>
+  !a.startsWith('--') && process.argv[i + 1] !== '--archief');
+const artifactPad = losArgument || path.join(hier, 'artifact.html');
 fs.mkdirSync(path.dirname(artifactPad), {recursive: true});
 fs.writeFileSync(artifactPad, artifact);
 
