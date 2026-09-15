@@ -102,12 +102,36 @@ Store), klik op de plusknop, kies *Browse* en wijs `waar-is-mijn-klas.html` aan.
 Staan je bureaubladpictogrammen in de weg? Kies het bestand dan met `?bureaublad`
 erachter; de tracker houdt links een strook vrij.
 
-De klok, de stand en de tijdlijn rekenen zichzelf elke halve minuut door, dus die
-lopen altijd mee. Alleen nieuwe roostergegevens moeten er via een bijgewerkte
-kopie in.
-
 **Mac.** Dubbelklikken is genoeg. Wil je hem ook als achtergrond:
 **[Plash](https://sindresorhus.com/plash)** (gratis, App Store) → *Open URL*.
+
+---
+
+## Hoe actueel blijft hij?
+
+Twee verschillende dingen, en het verschil is belangrijk.
+
+**De weergave** — de klok, welke les nu bezig is, wat er hierna komt, de tijdlijn —
+rekent zichzelf elke halve minuut opnieuw door. Dat is rekenwerk op je eigen
+computer, zonder internet, en het geldt voor alle drie de versies. Slaapt je laptop,
+dan staat de timer stil; bij het openklappen is hij binnen een halve minuut weer bij.
+
+**Nieuwe roostergegevens** liggen anders:
+
+| | Werkt bij |
+|---|---|
+| De versie op claude.ai | elk uur vanzelf, uit je agenda, zolang het venster open staat |
+| Het losse bestand | niet vanzelf: een browser laat een bestand op je schijf geen agenda lezen |
+
+Daarnaast herlaadt het losse bestand zichzelf elke nacht om vier uur helemaal. Zet
+je er een bijgewerkte kopie neer, dan pikt je achtergrond die de volgende ochtend
+vanzelf op; je hoeft Lively niet opnieuw in te stellen.
+
+Wil je een app-venster dat zich wél zelf bijwerkt, gebruik dan de versie op
+claude.ai en installeer die als app: in Edge of Chrome via ⋯ → *Apps* → *Deze site
+als app installeren*. Je krijgt dan een eigen venster met een icoon in je startmenu
+of Dock, dat elk uur zijn gegevens ophaalt. Voorwaarde is dat je in die browser bij
+claude.ai ingelogd bent.
 
 ---
 
