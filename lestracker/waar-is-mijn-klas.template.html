@@ -677,7 +677,8 @@ function vergelijkTekst(s){
   }
   var achterblijvers = s.groep.filter(function(x){ return x.gehad < s.hoogste; });
   if (achterblijvers.length){
-    return {klasse:'gelijk', tekst:'voorop, ' + namenVan(achterblijvers) + ' loopt achter'};
+    return {klasse:'gelijk', tekst:'voorop, ' + namenVan(achterblijvers) +
+      (achterblijvers.length === 1 ? ' loopt achter' : ' lopen achter')};
   }
   return {klasse:'gelijk', tekst:'gelijk met ' + namenVan(s.groep.filter(function(x){ return x !== s; }))};
 }
