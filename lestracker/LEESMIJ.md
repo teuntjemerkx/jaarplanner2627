@@ -178,11 +178,24 @@ volgorde:
 3. **Het vaste weekrooster** voor alle andere dagen, uit de weken van 7, 14 en
    21 september 2026, die alle drie precies gelijk waren.
 
-Niet meegeteld als les: introductie, Kansenmakers, Summervibes en teamoverleg.
-Die staan wel in de tijdlijn van je dag, maar het zijn geen lessen van een vak.
+**Alles uit je agenda zie je terug** in het dagoverzicht en in de vooruitblik op
+morgen. Of het ook meetelt in een lesreeks, hangt af van wat het is:
 
-Een toets telt **wel** mee: de klas was er, en de lesreeks schuift op. Waar het een
-toets betreft, staat dat erbij.
+| | Staat in je dag | Telt mee |
+|---|---|---|
+| Gewone les | ja | ja |
+| Toets, examen, herkansing, IE, CE, WP | ja | ja — de klas was er, de reeks schuift op |
+| Achterwacht, surveillance, toezicht | ja | nee |
+| Teamoverleg, vergadering, studiedag, scholing | ja | nee |
+| Ouderavond, open dag, intake, verlof | ja | nee |
+
+Een toets of examen komt bij het juiste vak terecht: "Toets rekenen" telt mee bij
+Rekenen, "IE Nederlands Spreken 2F" bij Nederlands. Zonder dat zou elke toets een
+eigen kaart krijgen.
+
+Staat er iets in je agenda dat hier niet goed valt, zet het woord dan bij `GEEN_LES`
+in het bestand. De dagelijkse routine meldt het ook als hij iets tegenkomt waarvan
+hij het niet zeker weet.
 
 ---
 

@@ -100,11 +100,11 @@ body{
    grote pictogrammen is dus rond de 270. Staan je pictogrammen er niet netjes in,
    dan is dit het enige getal dat je hoeft te veranderen:
 
-       twee kolommen groot        270px   (de instelling hieronder)
-       drie kolommen groot        390px
-       twee kolommen middelgroot  190px
-       drie kolommen middelgroot  270px  */
-body.bureaublad{overflow:hidden;padding-left:var(--iconen,270px)}
+       twee kolommen groot        248px   (de instelling hieronder)
+       drie kolommen groot        362px
+       twee kolommen middelgroot  172px
+       drie kolommen middelgroot  248px  */
+body.bureaublad{overflow:hidden;padding-left:var(--iconen,248px)}
 
 /* Een vak onder je bureaubladpictogrammen, zodat die er als een rij in een
    paneel uitzien in plaats van los op de achtergrond te zweven. Het ligt boven
@@ -116,7 +116,7 @@ body.bureaublad::before{
   left:2px;
   top:2px;
   bottom:calc(var(--taakbalk,56px) + 4px);
-  width:calc(var(--iconen,270px) - 8px);
+  width:calc(var(--iconen,248px) - 8px);
   border-radius:20px;
   /* Blauw en violet uit het handboek, over de donkere basis. Een willekeurig
      donkerblauw valt uit de toon bij de rest van het scherm. */
@@ -1172,7 +1172,20 @@ function toonMerk(){
    ========================================================================= */
 
 /* Afspraken die wel in je rooster staan maar geen les van een vak zijn. */
-var GEEN_LES = ['Introductie', 'Kansenmakers', 'Summervibes', 'Teamoverleg', 'Studiedag', 'Vergadering'];
+/* Afspraken die wel in je rooster staan maar geen les van een vak zijn. Ze komen
+   wel in je dagoverzicht te staan, maar tellen nergens mee. Staat er iets in je
+   agenda dat hier hoort en er nog niet bij staat, zet het er dan bij. */
+var GEEN_LES = [
+  'Introductie', 'Kansenmakers', 'Summervibes',
+  'Teamoverleg', 'Overleg', 'Vergadering', 'Studiedag', 'Scholing',
+  'Achterwacht', 'Surveillance', 'Toezicht', 'Bereikbaar',
+  'Ouderavond', 'Open dag', 'Intake', 'Vrij', 'Verlof', 'Ziek'
+];
+
+/* Bijeenkomsten die wél meetellen in de reeks van een vak: de klas was er en de
+   reeks schuift op. Het woord ervoor wordt van de vaknaam afgehaald, zodat een
+   toets of examen bij het vak zelf terechtkomt en niet als apart vak verschijnt. */
+var TELT_ALS_BIJEENKOMST = /^(toets|examen|herkansing|ce|ie|wp)\b\s*/i;
 
 /* Zoekt de naam van een vak op tussen de vakken die de tracker kent, ongeacht
    hoofdletters. Geeft null als het er niet bij staat. */
@@ -1184,7 +1197,21 @@ function herkenVak(naam){
   for (var i = 0; i < WEEKROOSTER.length; i++){
     bekend[WEEKROOSTER[i].vak.toLowerCase()] = WEEKROOSTER[i].vak;
   }
-  return bekend[String(naam).trim().toLowerCase()] || null;
+
+  var zoek = String(naam).trim().toLowerCase();
+  if (bekend[zoek]) return bekend[zoek];
+
+  // Ook "Nederlands Gesprekken voeren 2F" hoort bij Nederlands. Langste namen
+  // eerst, anders zou een kortere naam een langere kunnen wegkapen.
+  var namen = [];
+  for (var s in bekend){
+    if (Object.prototype.hasOwnProperty.call(bekend, s)) namen.push(s);
+  }
+  namen.sort(function(a, b){ return b.length - a.length; });
+  for (i = 0; i < namen.length; i++){
+    if (zoek.indexOf(namen[i]) === 0) return bekend[namen[i]];
+  }
+  return null;
 }
 
 function icsOntsnap(waarde){
@@ -1251,11 +1278,12 @@ function ontleedAfspraak(afspraak){
   for (i = 0; i < GEEN_LES.length; i++){
     if (vak.toLowerCase().indexOf(GEEN_LES[i].toLowerCase()) === 0) soort = 'overig';
   }
-  // "Toets rekenen" hoort bij het vak Rekenen. Zonder dit krijgt elke toets een
-  // eigen kaart en telt hij niet mee in de reeks van het vak zelf.
-  if (/^toets\b/i.test(vak)){
+  // "Toets rekenen" hoort bij het vak Rekenen, en "IE Nederlands Spreken 2F" bij
+  // Nederlands. Zonder dit krijgt elke toets een eigen kaart en telt hij niet mee
+  // in de reeks van het vak zelf.
+  if (soort === 'les' && TELT_ALS_BIJEENKOMST.test(vak)){
     soort = 'toets';
-    var kern = herkenVak(vak.replace(/^toets\s*/i, ''));
+    var kern = herkenVak(vak.replace(TELT_ALS_BIJEENKOMST, ''));
     if (kern) vak = kern;
   }
 
