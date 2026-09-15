@@ -93,10 +93,18 @@ body{
      └──────────────┴──────────────┴───────────────────────────┘
 
    De strook voor de pictogrammen zit op de body en niet op het blad, zodat hij
-   buiten de schaling valt en dus altijd even breed blijft. Windows zet zijn
-   pictogrammen in kolommen van ongeveer tachtig pixels; 180 is goed voor twee.
-   Voor drie kolommen zet je --iconen op 260px. */
-body.bureaublad{overflow:hidden;padding-left:var(--iconen,180px)}
+   buiten de schaling valt en dus altijd even breed blijft.
+
+   HOE BREED? Een kolom pictogrammen is bij Windows ongeveer 120 pixels breed als
+   je "grote pictogrammen" gebruikt, en ongeveer 80 bij middelgrote. Twee kolommen
+   grote pictogrammen is dus rond de 270. Staan je pictogrammen er niet netjes in,
+   dan is dit het enige getal dat je hoeft te veranderen:
+
+       twee kolommen groot        270px   (de instelling hieronder)
+       drie kolommen groot        390px
+       twee kolommen middelgroot  190px
+       drie kolommen middelgroot  270px  */
+body.bureaublad{overflow:hidden;padding-left:var(--iconen,270px)}
 
 /* Een vak onder je bureaubladpictogrammen, zodat die er als een rij in een
    paneel uitzien in plaats van los op de achtergrond te zweven. Het ligt boven
@@ -105,11 +113,11 @@ body.bureaublad{overflow:hidden;padding-left:var(--iconen,180px)}
 body.bureaublad::before{
   content:"";
   position:fixed;
-  left:12px;
-  top:12px;
-  bottom:calc(var(--taakbalk,56px) + 12px);
-  width:calc(var(--iconen,180px) - 24px);
-  border-radius:22px;
+  left:2px;
+  top:2px;
+  bottom:calc(var(--taakbalk,56px) + 4px);
+  width:calc(var(--iconen,270px) - 8px);
+  border-radius:20px;
   background:linear-gradient(180deg,rgba(23,36,86,.78),rgba(15,22,58,.62));
   border:1px solid rgba(215,195,242,.15);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 20px 45px -26px rgba(0,0,0,.9);
@@ -128,7 +136,7 @@ body.bureaublad .blad{
   min-height:0;
   padding:22px clamp(14px,1.6vw,30px) 18px;
   display:grid;
-  grid-template-columns:minmax(250px,27%) 1fr;
+  grid-template-columns:minmax(250px,29%) 1fr;
   grid-template-rows:auto 1fr auto;
   grid-template-areas:
     "kop kop"
@@ -161,6 +169,13 @@ body.bureaublad .volgende .vak{font-size:clamp(1.05rem,1.5vw,1.4rem)}
 body.bureaublad .lesbal .nr{font-size:clamp(3rem,5.6vw,5.4rem)}
 body.bureaublad .lesbal{padding:18px 20px;margin:16px 0 14px}
 
+/* Op een achtergrond kijk je net zo vaak op de klok als op je lessen. Die mag
+   hier dus fors, met de datum als rustig blok eronder. */
+body.bureaublad .klok .tijd{font-size:clamp(2.8rem,5.2vw,5.4rem);letter-spacing:-.035em;line-height:.95}
+body.bureaublad .klok .dag{font-size:1rem;margin-top:4px}
+body.bureaublad .klok .week{font-size:.78rem;padding:4px 13px;margin-top:8px}
+body.bureaublad .merk img{height:38px;width:calc(38px * 3.242)}
+
 /* --- de dag als lijst, niet als tijdlijn --------------------------------
    In een smalle kolom is een tijdlijn met blokjes onleesbaar. Een lijst laat
    bovendien in één blik zien wat al geweest is. */
@@ -175,7 +190,7 @@ body.bureaublad .lesbal{padding:18px 20px;margin:16px 0 14px}
 .daglijst li.bezig{background:var(--vlak-hoog);box-shadow:0 0 0 1px var(--streep)}
 .daglijst .tijd{font-size:.8rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--tekst-zacht)}
 .daglijst li.bezig .tijd{color:var(--streep)}
-.daglijst .wie{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.daglijst .wie{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .daglijst .waar{font-size:.71rem;color:var(--tekst-gedempt);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* --- kop ---------------------------------------------------------------- */
