@@ -1443,19 +1443,31 @@ function pasInBeeld(){
   var ruimte = window.innerHeight;
   if (!ruimte) return;
 
-  /* De schaal bepaalt ook de breedte van het blad, en de breedte bepaalt hoeveel
-     kaarten er naast elkaar passen, en dus de hoogte. Een enkele berekening klopt
-     daardoor niet; na een paar rondes is het verschil verwaarloosbaar. */
+  /* De schaal bepaalt de breedte van het blad, de breedte bepaalt hoeveel kaarten
+     er naast elkaar passen, en dat bepaalt weer de hoogte. Een enkele berekening
+     klopt daardoor niet, en omdat een kolom er ineens bij of af springt kan het
+     zoeken tussen twee waarden heen en weer blijven gaan. Vandaar eerst een paar
+     rondes schatten, en daarna een klep die net zo lang een tikje verkleint tot
+     het echt past. Liever iets kleiner dan iets dat je nooit te zien krijgt. */
+  function hoogteBij(f){
+    wortel.style.setProperty('--schaal', String(f));
+    return blad.getBoundingClientRect().height;   // dit is de hoogte in beeld
+  }
+
   var factor = 1;
   for (var ronde = 0; ronde < 4; ronde++){
-    wortel.style.setProperty('--schaal', String(factor));
-    var nodig = blad.scrollHeight;
-    if (!nodig) return;
-    var doel = ruimte / nodig;
-    doel = Math.max(0.5, Math.min(doel, 1.5));   // niet onleesbaar klein, niet lomp groot
+    var hoogte = hoogteBij(factor);
+    if (!hoogte) return;
+    var doel = Math.max(0.5, Math.min(factor * (ruimte / hoogte), 1.5));
     if (Math.abs(doel - factor) < 0.01) break;
     factor = doel;
   }
+
+  for (var stap = 0; stap < 30 && factor > 0.5; stap++){
+    if (hoogteBij(factor) <= ruimte + 1) break;
+    factor = factor * 0.97;
+  }
+
   wortel.style.setProperty('--schaal', String(Math.floor(factor * 1000) / 1000));
 }
 
