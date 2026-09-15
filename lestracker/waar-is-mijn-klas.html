@@ -87,7 +87,27 @@ body.bureaublad .blad{
   width:calc(100% / var(--schaal,1));
   min-height:0;
 }
-body.bureaublad .raster{flex:0 0 auto}
+body.bureaublad .raster{flex:0 0 auto;align-items:stretch}
+
+/* Op een achtergrond lees je geen uitleg: je kijkt en loopt door. Alles wat
+   toelicht in plaats van informeert, gaat er hier af. De titel ook; het logo
+   linksboven zegt genoeg. */
+body.bureaublad .voet{display:none}
+body.bureaublad .kop h1{display:none}
+
+/* Zonder dit blijft er onder het grote paneel een leeg vlak over zo hoog als de
+   kaarten ernaast. Nu vult het paneel die hoogte en staat de les in het midden. */
+body.bureaublad .volgende{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+/* Naar een achtergrond kijk je van een meter afstand, en het paneel heeft ruimte
+   over. Klas en lesnummer mogen daar dus flink groter. */
+body.bureaublad .volgende .klas{font-size:clamp(2.2rem,3.6vw,3.7rem)}
+body.bureaublad .volgende .vak{font-size:clamp(1.1rem,1.6vw,1.5rem)}
+body.bureaublad .lesbal .nr{font-size:clamp(3.4rem,6.4vw,6.2rem)}
+body.bureaublad .lesbal{padding:22px 24px}
 
 /* --- kop ---------------------------------------------------------------- */
 .kop{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:22px}
