@@ -383,9 +383,7 @@ var CONFIG = {
     'ABS-26D|Nederlands': 0,
     'ABS-26D|Rekenen': 0,
     'LIHS-26A|Rekenen': 0,
-    // Teun heeft 26A twee keer gehad en 26B een keer. De extra les van 26A staat
-    // niet in het rooster dat ik kon inzien, vandaar deze plus een.
-    'BACS-26A|Slim met AI': 1,
+    'BACS-26A|Slim met AI': 0,
     'BACS-26B|Slim met AI': 0
   }
 };
@@ -611,7 +609,7 @@ function bouwStanden(lessen, nu){
   var perGroep = {}, volgorde = [];
   for (var i = 0; i < lessen.length; i++){
     var l = lessen[i];
-    if (l.soort !== 'les') continue;
+    if (l.soort !== 'les' && l.soort !== 'toets') continue;
     var sleutel = l.klas + '|' + l.vak;
     if (!perGroep[sleutel]){ perGroep[sleutel] = []; volgorde.push(sleutel); }
     perGroep[sleutel].push(l);
@@ -744,6 +742,7 @@ function toonVolgende(standen, nu){
   var wanneerChip = maakEl('span','chip sterk',
     tekstDag(les.start, nu) + ' ' + tekstTijd(les.start) + '-' + tekstTijd(les.eindtijd));
   wanneer.appendChild(wanneerChip);
+  if (les.soort === 'toets') wanneer.appendChild(maakEl('span','chip','toets'));
   if (les.lokaal) wanneer.appendChild(maakEl('span','chip', les.lokaal));
   if (les.tijdWisselt) wanneer.appendChild(maakEl('span','chip','tijd wisselt, kijk in je agenda'));
   vak.appendChild(wanneer);
@@ -796,10 +795,8 @@ function toonKaarten(standen, nu){
     if (s.volgende){
       regel.appendChild(document.createTextNode(
         tekstDag(s.volgende.start, nu) + ' ' + tekstTijd(s.volgende.start)));
-      if (s.volgende.lokaal){
-        var em = maakEl('em', null, ' · ' + s.volgende.lokaal);
-        regel.appendChild(em);
-      }
+      if (s.volgende.soort === 'toets') regel.appendChild(maakEl('em', null, ' · toets'));
+      if (s.volgende.lokaal) regel.appendChild(maakEl('em', null, ' · ' + s.volgende.lokaal));
     } else {
       regel.appendChild(maakEl('em', null, 'geen les meer ingeroosterd'));
     }
@@ -945,6 +942,19 @@ function toonMerk(){
 /* Afspraken die wel in je rooster staan maar geen les van een vak zijn. */
 var GEEN_LES = ['Introductie', 'Kansenmakers', 'Summervibes', 'Teamoverleg', 'Studiedag', 'Vergadering'];
 
+/* Zoekt de naam van een vak op tussen de vakken die de tracker kent, ongeacht
+   hoofdletters. Geeft null als het er niet bij staat. */
+function herkenVak(naam){
+  var bekend = {};
+  for (var k in VAKKLEUR){
+    if (Object.prototype.hasOwnProperty.call(VAKKLEUR, k)) bekend[k.toLowerCase()] = k;
+  }
+  for (var i = 0; i < WEEKROOSTER.length; i++){
+    bekend[WEEKROOSTER[i].vak.toLowerCase()] = WEEKROOSTER[i].vak;
+  }
+  return bekend[String(naam).trim().toLowerCase()] || null;
+}
+
 function icsOntsnap(waarde){
   return waarde.replace(/\\n/gi, ' ').replace(/\\,/g, ',')
                .replace(/\;/g, ';').replace(/\\\\/g, '\\').trim();
@@ -1009,7 +1019,13 @@ function ontleedAfspraak(afspraak){
   for (i = 0; i < GEEN_LES.length; i++){
     if (vak.toLowerCase().indexOf(GEEN_LES[i].toLowerCase()) === 0) soort = 'overig';
   }
-  if (/^toets\b/i.test(vak)) soort = 'toets';
+  // "Toets rekenen" hoort bij het vak Rekenen. Zonder dit krijgt elke toets een
+  // eigen kaart en telt hij niet mee in de reeks van het vak zelf.
+  if (/^toets\b/i.test(vak)){
+    soort = 'toets';
+    var kern = herkenVak(vak.replace(/^toets\s*/i, ''));
+    if (kern) vak = kern;
+  }
 
   return {
     van: tekstTijd(afspraak.start), tot: tekstTijd(afspraak.eind),
@@ -1169,11 +1185,13 @@ function ontleedAgendaItem(item){
   return {datum: alsIso(begin), les: ontleed};
 }
 
-function haalUitAgenda(){
+function haalUitAgenda(stil){
   if (!mcpLaag) return;
   var knop = document.getElementById('knop-agenda');
-  knop.disabled = true;
-  meldStatus('Bezig met je agenda lezen...');
+  if (!stil){
+    knop.disabled = true;
+    meldStatus('Bezig met je agenda lezen...');
+  }
 
   var vanaf = new Date(); vanaf.setDate(vanaf.getDate() - 7);
   var tot = new Date(); tot.setDate(tot.getDate() + 45);
@@ -1205,10 +1223,18 @@ function haalUitAgenda(){
     var uitkomst = verwerkAgenda(alles);
     return bewaarArchiefInDb(leesArchief()).then(function(){ return uitkomst; });
   }).then(function(uitkomst){
-    naVerversen(uitkomst);
+    if (stil){
+      ALLE_LESSEN = bouwLessen();
+      ververs();
+      toonVoet();
+      toonStandBij();
+    } else {
+      naVerversen(uitkomst);
+    }
   }).catch(function(fout){
-    meldStatus(agendaFoutTekst(fout), 'fout');
-  }).then(function(){ knop.disabled = false; });
+    // Stil bijwerken valt niemand lastig: dan blijft de laatste stand gewoon staan.
+    if (!stil) meldStatus(agendaFoutTekst(fout), 'fout');
+  }).then(function(){ if (!stil) knop.disabled = false; });
 }
 
 /* Elke foutsoort heeft een eigen oplossing; een algemene melding helpt niemand. */
@@ -1420,7 +1446,7 @@ document.addEventListener('keydown', function(gebeurtenis){
   if (gebeurtenis.key === 'Escape' && !paneel.hidden) paneel.hidden = true;
 });
 document.getElementById('knop-ophalen').addEventListener('click', haalFeedOp);
-document.getElementById('knop-agenda').addEventListener('click', haalUitAgenda);
+document.getElementById('knop-agenda').addEventListener('click', function(){ haalUitAgenda(false); });
 document.getElementById('knop-anders').addEventListener('click', function(){
   document.getElementById('via-bestand').hidden = false;
   this.hidden = true;
@@ -1429,11 +1455,11 @@ document.getElementById('knop-bewaren').addEventListener('click', bewaarKopie);
 document.getElementById('ics-bestand').addEventListener('change', function(){ leesBestand(this); });
 toonStandBij();
 
-/* Is het adres van je feed eenmaal ingevuld, dan probeert de tracker elke zes
-   uur zelf bij te werken. Lukt dat niet, dan gebeurt er niets zichtbaars: je
-   houdt gewoon de laatste stand. Zo blijft een bureaubladachtergrond bij zonder
-   dat je er naar om hoeft te kijken. */
+/* Elk uur zichzelf bijwerken. Kan de pagina bij je agenda, dan gaat het daarlangs;
+   anders via het adres van je myx-feed, als dat is ingevuld. Lukt geen van beide,
+   dan gebeurt er niets zichtbaars en houd je gewoon de laatste stand. */
 function stilBijwerken(){
+  if (mcpLaag){ haalUitAgenda(true); return; }
   var url = opslagLees(FEED_SLEUTEL);
   if (!url || !window.fetch) return;
   fetch(url.replace(/^webcal:/i, 'https:'))
@@ -1451,7 +1477,21 @@ function stilBijwerken(){
     .catch(function(){ /* stil, dit is geen moment om de gebruiker lastig te vallen */ });
 }
 setTimeout(stilBijwerken, 8000);
-setInterval(stilBijwerken, 6 * 60 * 60 * 1000);
+setInterval(stilBijwerken, 60 * 60 * 1000);
+
+/* Een bureaubladachtergrond blijft draaien tot je computer uitgaat. Zet je er een
+   nieuw bestand neer, dan ziet de oude pagina dat niet. Daarom herlaadt hij zich
+   elke nacht om vier uur een keer helemaal; dan pikt hij een vervangen bestand op
+   zonder dat je de achtergrond opnieuw hoeft in te stellen. In de versie op
+   claude.ai hoeft dat niet: die haalt zijn gegevens zelf op. */
+function planNachtelijkeHerlaadbeurt(){
+  if (window.claude) return;
+  var nu = new Date();
+  var straks = new Date(nu.getFullYear(), nu.getMonth(), nu.getDate(), 4, 0, 0);
+  if (straks <= nu) straks.setDate(straks.getDate() + 1);
+  setTimeout(function(){ location.reload(); }, straks.getTime() - nu.getTime());
+}
+planNachtelijkeHerlaadbeurt();
 
 verbindMetClaude();
 </script>

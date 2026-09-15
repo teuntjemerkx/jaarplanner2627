@@ -138,11 +138,11 @@ volgorde:
 3. **Het vaste weekrooster** voor alle andere dagen, uit de weken van 7, 14 en
    21 september 2026, die alle drie precies gelijk waren.
 
-Niet meegeteld als les: introductie, Kansenmakers, Summervibes, teamoverleg en
-toetsen. Die staan wel in de tijdlijn van je dag, maar je bereidt er geen les voor.
+Niet meegeteld als les: introductie, Kansenmakers, Summervibes en teamoverleg.
+Die staan wel in de tijdlijn van je dag, maar het zijn geen lessen van een vak.
 
-De extra les van BACS 26A staat als correctie in het bestand: die klas had er twee
-gehad waar het rooster er één liet zien.
+Een toets telt **wel** mee: de klas was er, en de lesreeks schuift op. Waar het een
+toets betreft, staat dat erbij.
 
 ---
 
