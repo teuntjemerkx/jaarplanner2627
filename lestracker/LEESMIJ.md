@@ -111,6 +111,10 @@ Twee getallen daarin kun je zelf bijstellen. Zoek ze op in het bestand:
 | Breedte van de pictogramstrook | `--iconen`, staat op `270px` | sluit het vak niet om je pictogrammen. 270 is goed voor twee kolommen grote pictogrammen, 390 voor drie, 190 voor twee middelgrote |
 | Ruimte voor de taakbalk | `taakbalkHoogte`, staat op `56` | verbergt jouw taakbalk zichzelf? Zet hem op 0 en je wint die ruimte |
 
+Rechtsonder staat een vooruitblik op je eerstvolgende lesdag. Die vult meteen de
+plek die anders open zou blijven: met elf klassen en één vooruitblik komt het
+raster altijd precies uit.
+
 De pagina meet zichzelf op en schaalt tot alles binnen beeld valt — nagelopen op
 tien schermmaten van 1093 bij 614 tot 2560 bij 1440.
 

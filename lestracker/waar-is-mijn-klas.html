@@ -118,8 +118,10 @@ body.bureaublad::before{
   bottom:calc(var(--taakbalk,56px) + 4px);
   width:calc(var(--iconen,270px) - 8px);
   border-radius:20px;
-  background:linear-gradient(180deg,rgba(23,36,86,.78),rgba(15,22,58,.62));
-  border:1px solid rgba(215,195,242,.15);
+  /* Blauw en violet uit het handboek, over de donkere basis. Een willekeurig
+     donkerblauw valt uit de toon bij de rest van het scherm. */
+  background:linear-gradient(180deg,rgba(32,159,234,.20),rgba(97,15,202,.30));
+  border:1px solid rgba(215,195,242,.16);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 20px 45px -26px rgba(0,0,0,.9);
   z-index:1;
   pointer-events:none;
@@ -190,6 +192,18 @@ body.bureaublad .klok .tijd{
 body.bureaublad .klok .dag{font-size:1rem;margin-top:7px;display:inline-block;vertical-align:middle}
 body.bureaublad .klok .week{font-size:.76rem;padding:4px 13px;margin:0 0 0 10px;vertical-align:middle}
 body.bureaublad .merk img{height:38px;width:calc(38px * 3.242)}
+
+/* --- vooruitblik op de eerstvolgende lesdag -----------------------------
+   Met elf klassen blijft er in het raster een plek open. Daar staat nu de dag
+   die hierna komt, want dat is wat je op een middag wilt weten. Meteen ook
+   handig: twaalf vakken vullen het raster altijd precies. */
+.kaart.vooruit{background:var(--vlak-zacht);border-style:dashed}
+.kaart.vooruit .klasnaam{color:var(--tekst-zacht)}
+.kaart.vooruit .daglijst li{background:transparent;padding:4px 0 4px 9px;border-radius:0}
+.kaart.vooruit .daglijst{gap:1px}
+.kaart.vooruit .tijd{font-size:.75rem}
+.kaart.vooruit .wie{font-size:.75rem;font-weight:600}
+.kaart.vooruit .meer{font-size:.74rem;color:var(--tekst-gedempt);padding-left:12px}
 
 /* --- de dag als lijst, niet als tijdlijn --------------------------------
    In een smalle kolom is een tijdlijn met blokjes onleesbaar. Een lijst laat
@@ -1021,6 +1035,52 @@ var laatsteTik = Date.now();
 
 /* De lessen van de dag onder elkaar: wat geweest is gedempt, waar je nu mee
    bezig bent opgelicht. */
+/* Vult de open plek in het raster met de eerstvolgende lesdag ná vandaag. */
+function toonVooruitblik(lessen, nu){
+  if (!document.body.classList.contains('bureaublad')) return;
+
+  var vandaag = alsIso(nu), volgendeDag = null;
+  for (var i = 0; i < lessen.length; i++){
+    var dag = alsIso(lessen[i].start);
+    if (dag > vandaag){ volgendeDag = dag; break; }
+  }
+  if (!volgendeDag) return;
+
+  var dieDag = lessen.filter(function(l){ return alsIso(l.start) === volgendeDag; });
+  if (!dieDag.length) return;
+
+  var datum = dieDag[0].start;
+  var morgen = new Date(nu); morgen.setDate(morgen.getDate() + 1);
+  var opschrift = alsIso(morgen) === volgendeDag
+    ? 'Morgen'
+    : DAGNAAM[datum.getDay()].charAt(0).toUpperCase() + DAGNAAM[datum.getDay()].slice(1);
+
+  var kaart = maakEl('div','kaart vooruit');
+  var titel = maakEl('div','titel');
+  titel.appendChild(maakEl('span','klasnaam', opschrift));
+  titel.appendChild(maakEl('span','vaknaam',
+    DAGKORT[datum.getDay()] + ' ' + datum.getDate() + ' ' + MAANDKORT[datum.getMonth()]));
+  kaart.appendChild(titel);
+
+  var lijst = maakEl('ol','daglijst');
+  var tonen = dieDag.slice(0, 4);
+  tonen.forEach(function(l){
+    var regel = maakEl('li');
+    regel.style.setProperty('--streep', kleurVan(l.vak));
+    regel.appendChild(maakEl('span','tijd', tekstTijd(l.start)));
+    regel.appendChild(maakEl('span','wie',
+      l.klas ? l.klas.replace('-',' ') + ' · ' + l.vak : l.vak));
+    lijst.appendChild(regel);
+  });
+  kaart.appendChild(lijst);
+
+  if (dieDag.length > tonen.length){
+    kaart.appendChild(maakEl('div','meer', 'en nog ' + (dieDag.length - tonen.length)));
+  }
+
+  document.getElementById('kaarten').appendChild(kaart);
+}
+
 function toonDagAlsLijst(vanDaag, nu, dagIso){
   var vak = document.getElementById('dagvak');
   var vandaagIsHet = alsIso(nu) === dagIso;
@@ -1651,6 +1711,7 @@ function ververs(){
   toonKop(nu);
   toonVolgende(standen, nu);
   toonKaarten(standen, nu);
+  toonVooruitblik(ALLE_LESSEN, nu);
   toonDag(ALLE_LESSEN, nu);
   pasInBeeld();
 }
