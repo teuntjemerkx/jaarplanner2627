@@ -54,6 +54,21 @@ heen. Dan hoef je myx nooit meer te openen.
 Staat er meer dan negen dagen niets bijgewerkt, dan verschijnt onderin een oranje
 waarschuwing. Een teller die doorrekent op een oud rooster is erger dan geen teller.
 
+### Elke ochtend vanzelf
+
+Er staat een Routine klaar die elke ochtend om 07:12 (Nederlandse tijd) je agenda
+leest en het archief bijwerkt, zonder melding. Je vindt hem op claude.ai onder
+Routines, als *Lestracker bijwerken uit Mijn rooster*.
+
+Die routine heeft wel toegang tot je Google Agenda nodig. Staat die er niet bij,
+dan draait hij elke ochtend voor niets. Zie het antwoord in het gesprek waarin hij
+is aangemaakt, of maak hem opnieuw aan vanuit de Routines-pagina zelf: dan krijgt
+hij je connectoren wel mee.
+
+Draait de routine, dan is het weekrooster in dit bestand nog maar een vangnet voor
+de verre toekomst: alles tot anderhalve maand vooruit komt dan uit je echte agenda.
+Ook de stage die in periode 4 begint wordt dan vanzelf goed geteld.
+
 ---
 
 ## Als bureaubladachtergrond
